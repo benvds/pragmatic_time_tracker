@@ -5,5 +5,11 @@
         "moduleResolution": "Node",
         "allowSyntheticDefaultImports": true
     },
-    "include": ["vite.config.ts"]
+    "types": [
+        "@testing-library/react",
+        "@testing-library/jest-dom"
+    ],
+    "include": [
+        "vite.config.ts"
+    ]
 }
