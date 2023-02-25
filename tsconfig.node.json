@@ -3,13 +3,14 @@
         "composite": true,
         "module": "ESNext",
         "moduleResolution": "Node",
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "skipLibCheck": true
     },
-    "types": [
-        "@testing-library/react",
-        "@testing-library/jest-dom"
-    ],
+    "types": ["@testing-library/react", "@testing-library/jest-dom"],
     "include": [
-        "vite.config.ts"
+        "src",
+        "vite.config.ts",
+        "vite.config.d.ts",
+        "./test/vitest.setup.ts"
     ]
 }

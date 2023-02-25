@@ -2,11 +2,7 @@
     "compilerOptions": {
         "target": "ESNext",
         "useDefineForClassFields": true,
-        "lib": [
-            "DOM",
-            "DOM.Iterable",
-            "ESNext"
-        ],
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
         "allowJs": false,
         "skipLibCheck": true,
         "esModuleInterop": false,
@@ -23,10 +19,8 @@
     "include": [
         "src",
         "vite.config.ts",
+        "vite.config.d.ts",
         "./test/vitest.setup.ts"
     ],
-    "types": [
-        "@testing-library/react",
-        "@testing-library/jest-dom"
-    ]
+    "types": ["@testing-library/react", "@testing-library/jest-dom"]
 }

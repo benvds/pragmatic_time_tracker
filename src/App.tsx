@@ -1,6 +1,14 @@
 import reactLogo from "./assets/react.svg";
 import "./App.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const ButtonDisabled = () => {
+    return (
+        <button onClick={console.debug} disabled>
+            im disabled
+        </button>
+    );
+};
 
 function App() {
     const [count, setCount] = useState(0);
