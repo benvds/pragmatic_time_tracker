@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 const ButtonDisabled = () => {
     return (
-        <button onClick={console.debug} disabled>
+        <button onClick={console.debug} disabled={true}>
             im disabled
         </button>
     );
