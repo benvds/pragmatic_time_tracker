@@ -9,8 +9,9 @@
         "lint:fix": "eslint ./src --ext .jsx,.js,.ts,.tsx --quiet --fix --ignore-path ./.gitignore",
         "lint:format": "prettier --loglevel warn --write \"./**/*.{js,jsx,ts,tsx,html,css,md,json}\" ",
         "lint": "pnpm lint:format && pnpm lint:fix ",
-        "type-check": "tsc",
+        "type-check": "tsc --noEmit",
         "test": "vitest",
+        "test:cov": "vitest run --coverage",
         "test:ui": "vitest --ui"
     },
     "dependencies": {
@@ -29,6 +30,7 @@
         "@typescript-eslint/eslint-plugin": "^5.53.0",
         "@typescript-eslint/parser": "^5.53.0",
         "@vitejs/plugin-react": "^3.1.0",
+        "@vitest/coverage-c8": "^0.28.5",
         "@vitest/ui": "^0.28.5",
         "eslint": "^8.34.0",
         "eslint-config-prettier": "^8.6.0",

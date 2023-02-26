@@ -11,6 +11,9 @@ export default defineConfig({
         globals: true,
         environment: "happy-dom",
         setupFiles: "./test/vitest.setup.ts",
+        coverage: {
+            provider: "c8",
+        },
         // you might want to disable it, if you don't have tests that rely on CSS
         // since parsing CSS is slow
         // css: true,
