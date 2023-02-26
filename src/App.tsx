@@ -1,10 +1,12 @@
-import reactLogo from "./assets/react.svg";
 import "./App.css";
-import { useState, useEffect } from "react";
 
-const ButtonDisabled = () => {
+import { useEffect, useState } from "react";
+
+import reactLogo from "./assets/react.svg";
+
+const _ButtonDisabled = () => {
     return (
-        <button onClick={console.debug} disabled={true}>
+        <button onClick={console.debug} disabled>
             im disabled
         </button>
     );
