@@ -1,12 +1,12 @@
 import { render, screen } from "@testing-library/react";
 
-import App from "./App";
+import { App } from "./App";
 
 describe("<App />", () => {
     it("should render the App", () => {
         render(<App />);
 
-        expect(screen.getByText(/React./i)).toBeInTheDocument();
+        expect(screen.getByText(/Description/i)).toBeInTheDocument();
 
         // expect(
         //   screen.getByRole('link', {

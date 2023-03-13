@@ -4,7 +4,9 @@
         "module": "ESNext",
         "moduleResolution": "Node",
         "allowSyntheticDefaultImports": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false
     },
     "include": ["vite.config.ts", "./test/vitest.setup.ts"]
 }

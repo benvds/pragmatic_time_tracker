@@ -15,12 +15,18 @@
         "isolatedModules": true,
         "noEmit": true,
         "jsx": "react-jsx",
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
         "types": [
             "vitest/globals",
             "@testing-library/react",
             "@testing-library/jest-dom"
         ]
     },
-    "references": [{ "path": "./tsconfig.node.json" }],
+    "references": [
+        {
+            "path": "./tsconfig.node.json"
+        }
+    ],
     "include": ["src"]
 }
