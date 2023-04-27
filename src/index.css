@@ -1,11 +1,35 @@
 :root {
+    --white: hsl(0, 0%, 97%);
+    --black: hsl(0, 0%, 3%);
+    --link: hsl(237, 100%, 70%);
+    --link-hover: hsl(237, 86%, 64%);
+
+    --font-size-md: 16px;
+
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+
+    --slate-50: hsl(210, 40%, 98%);
+    --slate-100: hsl(210, 40%, 96%);
+    --slate-200: hsl(214, 32%, 91%);
+    --slate-300: hsl(213, 27%, 84%);
+    --slate-400: hsl(215, 20%, 65%);
+    --slate-500: hsl(215, 16%, 47%);
+    --slate-600: hsl(215, 19%, 35%);
+    --slate-700: hsl(215, 25%, 27%);
+    --slate-800: hsl(217, 33%, 17%);
+    --slate-900: hsl(222, 47%, 11%);
+    --slate-950: hsl(229, 84%, 5%);
+
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
     font-weight: 400;
 
     color-scheme: light dark;
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
+    color: var(--black);
+    background-color: var(--white);
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -16,24 +40,19 @@
 
 a {
     font-weight: 500;
-    color: #646cff;
+    color: var(--link);
     text-decoration: inherit;
 }
 a:hover {
-    color: #535bf2;
+    color: var(--link-hover);
 }
 
 body {
     margin: 0;
-    display: flex;
-    place-items: center;
+    display: grid;
+    place-items: center top;
     min-width: 320px;
     min-height: 100vh;
-}
-
-h1 {
-    font-size: 3.2em;
-    line-height: 1.1;
 }
 
 button {
@@ -55,14 +74,16 @@ button:focus-visible {
     outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: dark) {
     :root {
-        color: #213547;
-        background-color: #ffffff;
+        background-color: #213547;
+        color: hsl(0, 0%, 80%);
     }
+
     a:hover {
         color: #747bff;
     }
+
     button {
         background-color: #f9f9f9;
     }
