@@ -2,28 +2,30 @@
     padding: var(--spacing-md);
 }
 
-label {
-    padding: calc(var(--font-size-md) / 2) 0;
-}
-
-input[type="text"],
-input[type="number"] {
-    max-width: 32ch;
-    border-radius: var(--spacing-xs);
-    padding: calc(var(--font-size-md) / 2);
-    font-size: var(--font-size-md);
-}
-
-.inputGroup {
+.inputGroup,
+.formActions {
     display: flex;
     gap: var(--spacing-md);
 }
+.formActions {
+    padding: var(--spacing-md) 0;
+}
 
+.buttonSolid {
+    flex-grow: 3;
+}
+
+.buttonGhost {
+    flex-grow: 1;
+    border: none;
+    background: none;
+}
 .doubleDigits {
     width: 8ch;
 }
 
 .form {
+    max-width: 40ch;
     border-radius: var(--spacing-md);
     background-color: var(--slate-200);
     padding: var(--spacing-lg);

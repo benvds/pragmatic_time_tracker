@@ -1,11 +1,18 @@
+import { FormEventHandler } from "react";
+
 import styles from "./App.module.css";
 
 export const App = () => {
     console.debug("rendering app");
+    const handleSubmit: FormEventHandler<HTMLFormElement> = (evt) => {
+        console.debug("form submit event:", evt);
+        evt.preventDefault();
+    };
+
     return (
         <div className={styles.container}>
             {/* <Button solid onClick={console.debug}></Button> */}
-            <form className={styles.form}>
+            <form className={styles.form} onSubmit={handleSubmit}>
                 <div className={styles.formField}>
                     <label htmlFor="desc">Description</label>
                     <input type="text" name="desc" tabIndex={0} />
@@ -30,6 +37,17 @@ export const App = () => {
                             tabIndex={0}
                         />
                     </div>
+                </div>
+                <div className={styles.formActions}>
+                    <button type="submit" className={styles.buttonSolid}>
+                        Save
+                    </button>
+                    <button
+                        className={styles.buttonGhost}
+                        onClick={console.debug}
+                    >
+                        Reset
+                    </button>
                 </div>
             </form>
         </div>
