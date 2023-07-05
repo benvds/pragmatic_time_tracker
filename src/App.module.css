@@ -34,6 +34,12 @@
     gap: calc(var(--spacing-md) / 2);
 }
 
+@media (prefers-color-scheme: dark) {
+    .form {
+        background-color: var(--slate-800);
+    }
+}
+
 .formField {
     display: flex;
     flex-direction: column;

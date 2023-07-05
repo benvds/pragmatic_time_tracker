@@ -1,6 +1,7 @@
 import { FormEventHandler } from "react";
 
 import styles from "./App.module.css";
+import { Button } from "./components/button";
 
 export const App = () => {
     console.debug("rendering app");
@@ -39,9 +40,7 @@ export const App = () => {
                     </div>
                 </div>
                 <div className={styles.formActions}>
-                    <button type="submit" className={styles.buttonSolid}>
-                        Save
-                    </button>
+                    <Button type="submit">Save</Button>
                     <button
                         className={styles.buttonGhost}
                         onClick={console.debug}
