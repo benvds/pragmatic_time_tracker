@@ -6,7 +6,7 @@ import styles from "./button.module.css";
 type ButtonVariant = "solid" | "ghost";
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-    variant: ButtonVariant;
+    variant?: ButtonVariant;
 };
 
 export const Button = ({
