@@ -10,10 +10,7 @@ module.exports = {
             version: "detect",
         },
         "import/resolver": {
-            node: {
-                paths: ["src", "test"],
-                extensions: [".js", ".jsx", ".ts", ".tsx"],
-            },
+            typescript: {},
         },
     },
     env: {
@@ -25,6 +22,7 @@ module.exports = {
     extends: [
         // By extending from a plugin config, we can get recommended rules without having to add them manually.
         "eslint:recommended",
+        "plugin:import/typescript",
         "plugin:react/recommended",
         "plugin:react-hooks/recommended",
         "plugin:import/recommended",
@@ -37,19 +35,6 @@ module.exports = {
         // Make sure it's always the last config, so it gets the chance to override other configs.
         "eslint-config-prettier",
     ],
-    settings: {
-        react: {
-            // Tells eslint-plugin-react to automatically detect the version of React to use.
-            version: "detect",
-        },
-        // Tells eslint how to resolve imports
-        "import/resolver": {
-            node: {
-                paths: ["src"],
-                extensions: [".js", ".jsx", ".ts", ".tsx"],
-            },
-        },
-    },
     rules: {
         "react/jsx-boolean-value": "warn", // test the eslint fixer with <button disabled={true}> instead of <button disabled>
         "react/react-in-jsx-scope": "off",
