@@ -60,6 +60,16 @@
 .frontGhost:hover {
     background: hsla(0, 0%, 100%, 0.35);
 }
+
+@media (prefers-color-scheme: dark) {
+    .frontGhost {
+        color: var(--slate-400);
+    }
+    .frontGhost:hover {
+        color: var(--slate-200);
+    }
+}
+
 .pushable:hover {
     filter: brightness(110%);
 }
