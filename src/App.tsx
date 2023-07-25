@@ -41,12 +41,7 @@ export const App = () => {
                 </div>
                 <div className={styles.formActions}>
                     <Button type="submit">Save</Button>
-                    <button
-                        className={styles.buttonGhost}
-                        onClick={console.debug}
-                    >
-                        Reset
-                    </button>
+                    <Button type="submit" variant="ghost">Reset</Button>
                 </div>
             </form>
         </div>

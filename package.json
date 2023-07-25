@@ -33,6 +33,7 @@
         "@vitejs/plugin-react": "^4.0.1",
         "@vitest/coverage-c8": "^0.32.4",
         "@vitest/ui": "^0.32.4",
+        "clsx": "^2.0.0",
         "eslint": "^8.44.0",
         "eslint-config-prettier": "^8.8.0",
         "eslint-plugin-import": "^2.27.5",
