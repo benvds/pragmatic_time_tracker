@@ -26,6 +26,8 @@
     --slate-900: hsl(222, 47%, 11%);
     --slate-950: hsl(229, 84%, 5%);
 
+    --red-700: hsl(0, 74%, 42%);
+
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
     font-weight: 400;
@@ -67,7 +69,6 @@ body {
 button,
 label {
     font-weight: 500;
-    padding: calc(var(--font-size-md) / 2) 0;
 }
 
 input[type="text"],
@@ -78,6 +79,10 @@ input[type="number"] {
     padding: calc(var(--font-size-md) / 2);
     font-size: var(--font-size-md);
     background-color: var(--slate-200);
+}
+input[type="text"]:invalid,
+input[type="number"]:invalid {
+    border-color: var(--red-700);
 }
 @media (prefers-color-scheme: dark) {
     input[type="text"],

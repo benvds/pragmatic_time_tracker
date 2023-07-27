@@ -21,7 +21,11 @@
     padding: var(--spacing-lg);
     display: flex;
     flex-direction: column;
-    gap: calc(var(--spacing-md) / 2);
+    gap: var(--spacing-sm);
+}
+
+.formError {
+    color: var(--red-700);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -33,4 +37,5 @@
 .formField {
     display: flex;
     flex-direction: column;
+    gap: var(--spacing-sm);
 }
