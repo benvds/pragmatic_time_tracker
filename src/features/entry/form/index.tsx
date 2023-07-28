@@ -1,5 +1,4 @@
-import ValidityState from "happy-dom/lib/validity-state/ValidityState";
-import { FormEventHandler, useState } from "react";
+import { FocusEventHandler, FormEventHandler, useState } from "react";
 
 import { Button } from "@/components/button";
 
@@ -18,7 +17,7 @@ type FieldParser<V extends ParsedValue = ParsedValue> = (
 const entryFormFields = ["description", "project", "hh", "mm"] as const;
 type EntryFormField = (typeof entryFormFields)[number];
 type EntryFieldParsers = Record<EntryFormField, FieldParser>;
-type EntryParsedFields = Record<EntryFormField, ParsedField>;
+type EntryParsedFields = Partial<Record<EntryFormField, ParsedField>>;
 
 const descriptionMinLength = 3;
 const projectMinLength = 2;
@@ -79,11 +78,17 @@ const FormFieldError = ({ field }: { field?: ParsedField }) =>
         <div className={styles.formError}>{field.error}</div>
     ) : null;
 
+const withoutErrors = (
+    fields: EntryParsedFields,
+): fields is Record<EntryFormField, ParsedFieldSuccess> =>
+    Object.values(fields).filter((field) => "error" in field).length === 0;
+
 /**
  *
  * TODO:
- * - [ ] live validate on input when dirty
- * - [ ] start validating on first change, field after change on input, enable submit only on valid
+ * - [x] live validate on blur
+ * - [x] start validating on first change, field after change on input
+ * - [ ] refactor parser setup, at least on blur
  * - [ ] focus buttons using border/outline
  */
 
@@ -102,20 +107,18 @@ export const EntryForm = () => {
                 parser(formData.get(field) as string),
             ]),
         ) as EntryParsedFields;
+
         setParsedFields(parsed);
 
         console.debug("parsed", parsed);
 
-        if (
-            Object.values(parsed).filter((field) => "error" in field).length ===
-            0
-        ) {
+        if (withoutErrors(parsed)) {
             const entry = {
-                description: (parsed.description as ParsedFieldSuccess).value,
-                project: (parsed.project as ParsedFieldSuccess).value,
+                description: parsed.description.value,
+                project: parsed.project.value,
                 duration:
-                    (parsed.hh as ParsedFieldSuccess<number>).value * 60 +
-                    (parsed.mm as ParsedFieldSuccess<number>).value,
+                    (parsed.hh.value as number) * 60 +
+                    (parsed.mm.value as number),
             };
 
             console.debug("entry", entry);
@@ -126,11 +129,27 @@ export const EntryForm = () => {
         setParsedFields(undefined);
     };
 
-    // const handleDescriptionInput: FormEventHandler<HTMLInputElement> = (
-    //     evt,
-    // ) => {
-    //     const descInput = evt.currentTarget.value;
-    // };
+    const handleDescriptionBlur: FocusEventHandler<HTMLInputElement> = (
+        evt,
+    ) => {
+        const parsed = parseDescription(evt.currentTarget.value);
+        setParsedFields((prev = {}) => ({ ...prev, description: parsed }));
+    };
+
+    const handleProjectBlur: FocusEventHandler<HTMLInputElement> = (evt) => {
+        const parsed = parseProject(evt.currentTarget.value);
+        setParsedFields((prev = {}) => ({ ...prev, project: parsed }));
+    };
+
+    const handleHhBlur: FocusEventHandler<HTMLInputElement> = (evt) => {
+        const parsed = parseHh(evt.currentTarget.value);
+        setParsedFields((prev = {}) => ({ ...prev, hh: parsed }));
+    };
+
+    const handleMmBlur: FocusEventHandler<HTMLInputElement> = (evt) => {
+        const parsed = parseMm(evt.currentTarget.value);
+        setParsedFields((prev = {}) => ({ ...prev, mm: parsed }));
+    };
 
     return (
         <form
@@ -141,12 +160,22 @@ export const EntryForm = () => {
         >
             <div className={styles.formField}>
                 <label htmlFor="description">Description</label>
-                <input type="text" name="description" tabIndex={0} />
+                <input
+                    type="text"
+                    name="description"
+                    tabIndex={0}
+                    onBlur={handleDescriptionBlur}
+                />
                 <FormFieldError field={parsedFields?.description} />
             </div>
             <div className={styles.formField}>
                 <label htmlFor="project">Project</label>
-                <input type="text" name="project" tabIndex={0} />
+                <input
+                    type="text"
+                    name="project"
+                    tabIndex={0}
+                    onBlur={handleProjectBlur}
+                />
                 <FormFieldError field={parsedFields?.project} />
             </div>
             <div className={styles.formField}>
@@ -160,6 +189,7 @@ export const EntryForm = () => {
                             tabIndex={0}
                             min={hhMin}
                             max={hhMax}
+                            onBlur={handleHhBlur}
                         />
                         <FormFieldError field={parsedFields?.hh} />
                     </div>
@@ -171,6 +201,7 @@ export const EntryForm = () => {
                             tabIndex={0}
                             min={mmMin}
                             max={mmMax}
+                            onBlur={handleMmBlur}
                         />
                         <FormFieldError field={parsedFields?.mm} />
                     </div>
