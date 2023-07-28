@@ -1,4 +1,10 @@
-import { FocusEventHandler, FormEventHandler, useState } from "react";
+import {
+    ChangeEvent,
+    FocusEvent,
+    FocusEventHandler,
+    FormEventHandler,
+    useState,
+} from "react";
 
 import { Button } from "@/components/button";
 
@@ -88,7 +94,7 @@ const withoutErrors = (
  * TODO:
  * - [x] live validate on blur
  * - [x] start validating on first change, field after change on input
- * - [ ] refactor parser setup, at least on blur
+ * - [x] refactor parser setup, at least on blur
  * - [ ] focus buttons using border/outline
  */
 
@@ -129,27 +135,12 @@ export const EntryForm = () => {
         setParsedFields(undefined);
     };
 
-    const handleDescriptionBlur: FocusEventHandler<HTMLInputElement> = (
-        evt,
-    ) => {
-        const parsed = parseDescription(evt.currentTarget.value);
-        setParsedFields((prev = {}) => ({ ...prev, description: parsed }));
-    };
-
-    const handleProjectBlur: FocusEventHandler<HTMLInputElement> = (evt) => {
-        const parsed = parseProject(evt.currentTarget.value);
-        setParsedFields((prev = {}) => ({ ...prev, project: parsed }));
-    };
-
-    const handleHhBlur: FocusEventHandler<HTMLInputElement> = (evt) => {
-        const parsed = parseHh(evt.currentTarget.value);
-        setParsedFields((prev = {}) => ({ ...prev, hh: parsed }));
-    };
-
-    const handleMmBlur: FocusEventHandler<HTMLInputElement> = (evt) => {
-        const parsed = parseMm(evt.currentTarget.value);
-        setParsedFields((prev = {}) => ({ ...prev, mm: parsed }));
-    };
+    const setField =
+        (field: keyof typeof fieldParsers) =>
+        (evt: FocusEvent<HTMLInputElement> | ChangeEvent<HTMLInputElement>) => {
+            const parsed = fieldParsers[field](evt.currentTarget.value);
+            setParsedFields((prev = {}) => ({ ...prev, [field]: parsed }));
+        };
 
     return (
         <form
@@ -164,7 +155,7 @@ export const EntryForm = () => {
                     type="text"
                     name="description"
                     tabIndex={0}
-                    onBlur={handleDescriptionBlur}
+                    onBlur={setField("description")}
                 />
                 <FormFieldError field={parsedFields?.description} />
             </div>
@@ -174,7 +165,7 @@ export const EntryForm = () => {
                     type="text"
                     name="project"
                     tabIndex={0}
-                    onBlur={handleProjectBlur}
+                    onBlur={setField("project")}
                 />
                 <FormFieldError field={parsedFields?.project} />
             </div>
@@ -189,7 +180,7 @@ export const EntryForm = () => {
                             tabIndex={0}
                             min={hhMin}
                             max={hhMax}
-                            onBlur={handleHhBlur}
+                            onBlur={setField("hh")}
                         />
                         <FormFieldError field={parsedFields?.hh} />
                     </div>
@@ -201,7 +192,7 @@ export const EntryForm = () => {
                             tabIndex={0}
                             min={mmMin}
                             max={mmMax}
-                            onBlur={handleMmBlur}
+                            onBlur={setField("mm")}
                         />
                         <FormFieldError field={parsedFields?.mm} />
                     </div>
