@@ -5,8 +5,20 @@ import { Button } from "@/components/button";
 
 import styles from "./index.module.css";
 
-type EntryFormField = "description" | "project" | "hh" | "mm";
-type EntryFormErrors = Partial<Record<EntryFormField, string>>;
+type ParsedValue = string | number;
+type ParsedFieldSuccess<V extends ParsedValue = ParsedValue> = { value: V };
+type ParsedFieldError = { error: string };
+type ParsedField<V extends ParsedValue = ParsedValue> =
+    | ParsedFieldError
+    | ParsedFieldSuccess<V>;
+type FieldParser<V extends ParsedValue = ParsedValue> = (
+    inputValue: string | null,
+) => ParsedField<V>;
+
+const entryFormFields = ["description", "project", "hh", "mm"] as const;
+type EntryFormField = (typeof entryFormFields)[number];
+type EntryFieldParsers = Record<EntryFormField, FieldParser>;
+type EntryParsedFields = Record<EntryFormField, ParsedField>;
 
 const descriptionMinLength = 3;
 const projectMinLength = 2;
@@ -15,72 +27,95 @@ const hhMax = 24;
 const mmMin = 0;
 const mmMax = 59;
 
-const FormFieldError = ({
-    isDirty,
-    errors,
-    field,
-}: {
-    isDirty: boolean;
-    errors: Record<string, string>;
-    field: string;
-}) =>
-    isDirty && errors[field] ? (
-        <div className={styles.formError}>{errors[field]}</div>
+const parseDescription: FieldParser<string> = (input) => {
+    if (input === null || input.length === 0) {
+        return { error: `Required` };
+    } else if (input.length < descriptionMinLength) {
+        return { error: `At least ${descriptionMinLength} characters needed` };
+    } else {
+        return { value: input };
+    }
+};
+
+const parseProject: FieldParser<string> = (input) => {
+    if (input === null || input.length === 0) {
+        return { error: `Required` };
+    } else if (input.length < projectMinLength) {
+        return { error: `At least ${projectMinLength} characters needed` };
+    } else {
+        return { value: input };
+    }
+};
+
+const parseHh: FieldParser<number> = (input) => {
+    const parsed = Number.parseInt(input ?? "");
+
+    if (Number.isNaN(parsed) || parsed < hhMin || parsed > hhMax) {
+        return { error: `Should be a number between ${hhMin} and ${hhMax}.` };
+    } else {
+        return { value: parsed };
+    }
+};
+
+const parseMm: FieldParser<number> = (input) => {
+    const parsed = Number.parseInt(input ?? "");
+
+    if (Number.isNaN(parsed) || parsed < mmMin || parsed > mmMax) {
+        return { error: `Should be a number between ${mmMin} and ${mmMax}.` };
+    } else {
+        return { value: parsed };
+    }
+};
+
+const fieldParsers: EntryFieldParsers = {
+    description: parseDescription,
+    project: parseProject,
+    hh: parseHh,
+    mm: parseMm,
+} as const;
+
+const FormFieldError = ({ field }: { field?: ParsedField }) =>
+    field && "error" in field ? (
+        <div className={styles.formError}>{field.error}</div>
     ) : null;
 
 /**
  *
  * TODO:
  * - [ ] live validate on input when dirty
+ * - [ ] start validating on first change, field after change on input, enable submit only on valid
  * - [ ] focus buttons using border/outline
  */
 
 export const EntryForm = () => {
-    const [isDirty, setIsDirty] = useState(false);
-    const [errors, setErrors] = useState<EntryFormErrors>({});
+    const [parsedFields, setParsedFields] = useState<
+        EntryParsedFields | undefined
+    >();
 
     const handleSubmit: FormEventHandler<HTMLFormElement> = (evt) => {
         evt.preventDefault();
 
-        if (!isDirty) {
-            setIsDirty(true);
-        }
-
-        // parse form data
-
         const formData = new FormData(evt.currentTarget);
-        const description = (formData.get("description") as string) ?? "";
-        const project = (formData.get("project") as string) ?? "";
-        const hh = Number.parseInt((formData.get("hh") as string) ?? "");
-        const mm = Number.parseInt((formData.get("mm") as string) ?? "");
-        const duration = (isNaN(hh) ? 0 : hh) * 60 + (isNaN(mm) ? 0 : mm);
+        const parsed = Object.fromEntries(
+            Object.entries(fieldParsers).map(([field, parser]) => [
+                field,
+                parser(formData.get(field) as string),
+            ]),
+        ) as EntryParsedFields;
+        setParsedFields(parsed);
 
-        // validate form
+        console.debug("parsed", parsed);
 
-        const parsedErrors: EntryFormErrors = {};
-
-        if (description.length < descriptionMinLength) {
-            parsedErrors.description = `At least ${descriptionMinLength} characters needed.`;
-        }
-        if (project.length < projectMinLength) {
-            parsedErrors.project = `At least ${projectMinLength} characters needed.`;
-        }
-        if (Number.isNaN(hh) || hh < hhMin || hh > hhMax) {
-            parsedErrors.hh = `Should be a number between ${hhMin} and ${hhMax}.`;
-        }
-        if (Number.isNaN(mm) || mm < mmMin || mm > mmMax) {
-            parsedErrors.mm = `Should be a number between ${mmMin} and ${mmMax}.`;
-        }
-
-        setErrors(parsedErrors);
-
-        // save entry when no errors
-
-        if (Object.entries(parsedErrors).length === 0) {
+        if (
+            Object.values(parsed).filter((field) => "error" in field).length ===
+            0
+        ) {
             const entry = {
-                description,
-                project,
-                duration,
+                description: (parsed.description as ParsedFieldSuccess).value,
+                project: (parsed.project as ParsedFieldSuccess).value,
+                duration:
+                    (parsed.hh as ParsedFieldSuccess<number>).value * 60 +
+                    (parsed.mm as ParsedFieldSuccess<number>).value,
             };
 
             console.debug("entry", entry);
@@ -88,22 +123,14 @@ export const EntryForm = () => {
     };
 
     const handleReset = () => {
-        setErrors({});
+        setParsedFields(undefined);
     };
 
-    const handleDescriptionInput: FormEventHandler<HTMLInputElement> = (
-        evt,
-    ) => {
-        const descInput = evt.currentTarget;
-
-        if ((descInput.validity as ValidityState).tooShort) {
-            descInput.setCustomValidity(
-                "The description is too short. Use at least 3 characters.",
-            );
-        } else {
-            descInput.setCustomValidity("");
-        }
-    };
+    // const handleDescriptionInput: FormEventHandler<HTMLInputElement> = (
+    //     evt,
+    // ) => {
+    //     const descInput = evt.currentTarget.value;
+    // };
 
     return (
         <form
@@ -115,12 +142,12 @@ export const EntryForm = () => {
             <div className={styles.formField}>
                 <label htmlFor="description">Description</label>
                 <input type="text" name="description" tabIndex={0} />
-                <FormFieldError field="description" {...{ isDirty, errors }} />
+                <FormFieldError field={parsedFields?.description} />
             </div>
             <div className={styles.formField}>
                 <label htmlFor="project">Project</label>
                 <input type="text" name="project" tabIndex={0} />
-                <FormFieldError field="project" {...{ isDirty, errors }} />
+                <FormFieldError field={parsedFields?.project} />
             </div>
             <div className={styles.formField}>
                 <label htmlFor="hh">Duration (hh:mm)</label>
@@ -134,7 +161,7 @@ export const EntryForm = () => {
                             min={hhMin}
                             max={hhMax}
                         />
-                        <FormFieldError field="hh" {...{ isDirty, errors }} />
+                        <FormFieldError field={parsedFields?.hh} />
                     </div>
                     <div>
                         <input
@@ -145,7 +172,7 @@ export const EntryForm = () => {
                             min={mmMin}
                             max={mmMax}
                         />
-                        <FormFieldError field="mm" {...{ isDirty, errors }} />
+                        <FormFieldError field={parsedFields?.mm} />
                     </div>
                 </div>
             </div>
