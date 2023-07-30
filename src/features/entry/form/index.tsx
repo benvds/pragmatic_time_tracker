@@ -3,7 +3,7 @@ import { ChangeEvent, FocusEvent, FormEventHandler, useState } from "react";
 import { Button } from "@/components/button";
 import {
     everyFieldOk,
-    type FieldError,
+    FieldError,
     type FieldParser,
     type FieldParsers,
     type Fields,
