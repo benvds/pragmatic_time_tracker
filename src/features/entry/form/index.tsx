@@ -1,29 +1,20 @@
-import {
-    ChangeEvent,
-    FocusEvent,
-    FocusEventHandler,
-    FormEventHandler,
-    useState,
-} from "react";
+import { ChangeEvent, FocusEvent, FormEventHandler, useState } from "react";
 
 import { Button } from "@/components/button";
+import {
+    everyFieldOk,
+    type FieldError,
+    type FieldParser,
+    type FieldParsers,
+    type Fields,
+    type OkField,
+} from "@/lib/form";
 
 import styles from "./index.module.css";
 
-type ParsedValue = string | number;
-type ParsedFieldSuccess<V extends ParsedValue = ParsedValue> = { value: V };
-type ParsedFieldError = { error: string };
-type ParsedField<V extends ParsedValue = ParsedValue> =
-    | ParsedFieldError
-    | ParsedFieldSuccess<V>;
-type FieldParser<V extends ParsedValue = ParsedValue> = (
-    inputValue: string | null,
-) => ParsedField<V>;
-
-const entryFormFields = ["description", "project", "hh", "mm"] as const;
-type EntryFormField = (typeof entryFormFields)[number];
-type EntryFieldParsers = Record<EntryFormField, FieldParser>;
-type EntryParsedFields = Partial<Record<EntryFormField, ParsedField>>;
+const entryFieldNames = ["description", "project", "hh", "mm"] as const;
+type EntryFieldName = (typeof entryFieldNames)[number];
+type EntryFields = Fields<EntryFieldName>;
 
 const descriptionMinLength = 3;
 const projectMinLength = 2;
@@ -72,59 +63,45 @@ const parseMm: FieldParser<number> = (input) => {
     }
 };
 
-const fieldParsers: EntryFieldParsers = {
+const fieldParsers: FieldParsers<EntryFieldName> = {
     description: parseDescription,
     project: parseProject,
     hh: parseHh,
     mm: parseMm,
 } as const;
 
-const FormFieldError = ({ field }: { field?: ParsedField }) =>
-    field && "error" in field ? (
-        <div className={styles.formError}>{field.error}</div>
-    ) : null;
-
-const withoutErrors = (
-    fields: EntryParsedFields,
-): fields is Record<EntryFormField, ParsedFieldSuccess> =>
-    Object.values(fields).filter((field) => "error" in field).length === 0;
-
 /**
  *
  * TODO:
- * - [x] live validate on blur
- * - [x] start validating on first change, field after change on input
- * - [x] refactor parser setup, at least on blur
  * - [ ] focus buttons using border/outline
+ * - [ ] extract generic form logic to lib
  */
 
 export const EntryForm = () => {
-    const [parsedFields, setParsedFields] = useState<
-        EntryParsedFields | undefined
-    >();
+    const [fields, setFields] = useState<Partial<EntryFields> | undefined>();
 
     const handleSubmit: FormEventHandler<HTMLFormElement> = (evt) => {
         evt.preventDefault();
 
+        // TODO: extract generic setAllFieldsForForm
         const formData = new FormData(evt.currentTarget);
         const parsed = Object.fromEntries(
-            Object.entries(fieldParsers).map(([field, parser]) => [
-                field,
-                parser(formData.get(field) as string),
+            Object.entries(fieldParsers).map(([name, parser]) => [
+                name,
+                parser(formData.get(name) as string),
             ]),
-        ) as EntryParsedFields;
-
-        setParsedFields(parsed);
+        ) as EntryFields;
+        setFields(parsed);
 
         console.debug("parsed", parsed);
 
-        if (withoutErrors(parsed)) {
+        if (everyFieldOk(parsed)) {
             const entry = {
-                description: parsed.description.value,
-                project: parsed.project.value,
+                description: (parsed.description as OkField<string>).value,
+                project: (parsed.project as OkField<string>).value,
                 duration:
-                    (parsed.hh.value as number) * 60 +
-                    (parsed.mm.value as number),
+                    (parsed.hh as OkField<number>).value * 60 +
+                    (parsed.mm as OkField<number>).value,
             };
 
             console.debug("entry", entry);
@@ -132,14 +109,14 @@ export const EntryForm = () => {
     };
 
     const handleReset = () => {
-        setParsedFields(undefined);
+        setFields(undefined);
     };
 
     const setField =
         (field: keyof typeof fieldParsers) =>
         (evt: FocusEvent<HTMLInputElement> | ChangeEvent<HTMLInputElement>) => {
             const parsed = fieldParsers[field](evt.currentTarget.value);
-            setParsedFields((prev = {}) => ({ ...prev, [field]: parsed }));
+            setFields((prev = {}) => ({ ...prev, [field]: parsed }));
         };
 
     return (
@@ -157,7 +134,7 @@ export const EntryForm = () => {
                     tabIndex={0}
                     onBlur={setField("description")}
                 />
-                <FormFieldError field={parsedFields?.description} />
+                <FieldError field={fields?.description} />
             </div>
             <div className={styles.formField}>
                 <label htmlFor="project">Project</label>
@@ -167,7 +144,7 @@ export const EntryForm = () => {
                     tabIndex={0}
                     onBlur={setField("project")}
                 />
-                <FormFieldError field={parsedFields?.project} />
+                <FieldError field={fields?.project} />
             </div>
             <div className={styles.formField}>
                 <label htmlFor="hh">Duration (hh:mm)</label>
@@ -182,7 +159,7 @@ export const EntryForm = () => {
                             max={hhMax}
                             onBlur={setField("hh")}
                         />
-                        <FormFieldError field={parsedFields?.hh} />
+                        <FieldError field={fields?.hh} />
                     </div>
                     <div>
                         <input
@@ -194,7 +171,7 @@ export const EntryForm = () => {
                             max={mmMax}
                             onBlur={setField("mm")}
                         />
-                        <FormFieldError field={parsedFields?.mm} />
+                        <FieldError field={fields?.mm} />
                     </div>
                 </div>
             </div>
