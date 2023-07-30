@@ -70,20 +70,12 @@ const fieldParsers: FieldParsers<EntryFieldName> = {
     mm: parseMm,
 } as const;
 
-/**
- *
- * TODO:
- * - [ ] focus buttons using border/outline
- * - [ ] extract generic form logic to lib
- */
-
 export const EntryForm = () => {
     const [fields, setFields] = useState<Partial<EntryFields> | undefined>();
 
     const handleSubmit: FormEventHandler<HTMLFormElement> = (evt) => {
         evt.preventDefault();
 
-        // TODO: extract generic setAllFieldsForForm
         const formData = new FormData(evt.currentTarget);
         const parsed = Object.fromEntries(
             Object.entries(fieldParsers).map(([name, parser]) => [
@@ -91,9 +83,8 @@ export const EntryForm = () => {
                 parser(formData.get(name) as string),
             ]),
         ) as EntryFields;
-        setFields(parsed);
 
-        console.debug("parsed", parsed);
+        setFields(parsed);
 
         if (everyFieldOk(parsed)) {
             const entry = {
