@@ -1,8 +1,17 @@
-import { ChangeEvent, FocusEvent, FormEventHandler, useState } from "react";
+import {
+    ChangeEvent,
+    Dispatch,
+    FocusEvent,
+    FormEvent,
+    FormEventHandler,
+    SetStateAction,
+    useState,
+} from "react";
 
 import { Button } from "@/components/button";
 import {
     everyFieldOk,
+    Field,
     FieldError,
     type FieldParser,
     type FieldParsers,
@@ -70,21 +79,43 @@ const fieldParsers: FieldParsers<EntryFieldName> = {
     mm: parseMm,
 } as const;
 
+type EntryFieldsState = Partial<EntryFields> | undefined;
+
+// TODO move to lib form
+
+type Setter<T> = (value: T | ((prevState: T) => T)) => void;
+
+const setFieldsForFormEvent = <S,>(
+    setFields: Setter<S>,
+    parsers: FieldParsers, /// <keyof S>, then S must be an string keyed record
+    evt: FormEvent<HTMLFormElement>,
+) => {
+    const formData = new FormData(evt.currentTarget);
+    const parsed = Object.fromEntries(
+        Object.entries(parsers).map(([name, parser]) => [
+            name,
+            parser(formData.get(name) as string),
+        ]),
+    ) as Required<NonNullable<S>>;
+
+    setFields(parsed);
+
+    return parsed;
+};
+const setFieldForInputEvent =
+    <S,>(field: EntryFieldName, setFields: Setter<S>, parsers: FieldParsers) =>
+    (evt: FocusEvent<HTMLInputElement> | ChangeEvent<HTMLInputElement>) => {
+        const parsed = parsers[field](evt.currentTarget.value);
+        setFields((prev = {} as S) => ({ ...prev, [field]: parsed }));
+    };
+
 export const EntryForm = () => {
-    const [fields, setFields] = useState<Partial<EntryFields> | undefined>();
+    const [fields, setFields] = useState<EntryFieldsState>();
 
     const handleSubmit: FormEventHandler<HTMLFormElement> = (evt) => {
         evt.preventDefault();
 
-        const formData = new FormData(evt.currentTarget);
-        const parsed = Object.fromEntries(
-            Object.entries(fieldParsers).map(([name, parser]) => [
-                name,
-                parser(formData.get(name) as string),
-            ]),
-        ) as EntryFields;
-
-        setFields(parsed);
+        const parsed = setFieldsForFormEvent(setFields, fieldParsers, evt);
 
         if (everyFieldOk(parsed)) {
             const entry = {
@@ -103,13 +134,6 @@ export const EntryForm = () => {
         setFields(undefined);
     };
 
-    const setField =
-        (field: keyof typeof fieldParsers) =>
-        (evt: FocusEvent<HTMLInputElement> | ChangeEvent<HTMLInputElement>) => {
-            const parsed = fieldParsers[field](evt.currentTarget.value);
-            setFields((prev = {}) => ({ ...prev, [field]: parsed }));
-        };
-
     return (
         <form
             className={styles.form}
@@ -123,7 +147,11 @@ export const EntryForm = () => {
                     type="text"
                     name="description"
                     tabIndex={0}
-                    onBlur={setField("description")}
+                    onBlur={setFieldForInputEvent(
+                        "description",
+                        setFields,
+                        fieldParsers,
+                    )}
                 />
                 <FieldError field={fields?.description} />
             </div>
@@ -133,7 +161,11 @@ export const EntryForm = () => {
                     type="text"
                     name="project"
                     tabIndex={0}
-                    onBlur={setField("project")}
+                    onBlur={setFieldForInputEvent(
+                        "project",
+                        setFields,
+                        fieldParsers,
+                    )}
                 />
                 <FieldError field={fields?.project} />
             </div>
@@ -148,7 +180,11 @@ export const EntryForm = () => {
                             tabIndex={0}
                             min={hhMin}
                             max={hhMax}
-                            onBlur={setField("hh")}
+                            onBlur={setFieldForInputEvent(
+                                "hh",
+                                setFields,
+                                fieldParsers,
+                            )}
                         />
                         <FieldError field={fields?.hh} />
                     </div>
@@ -160,7 +196,11 @@ export const EntryForm = () => {
                             tabIndex={0}
                             min={mmMin}
                             max={mmMax}
-                            onBlur={setField("mm")}
+                            onBlur={setFieldForInputEvent(
+                                "mm",
+                                setFields,
+                                fieldParsers,
+                            )}
                         />
                         <FieldError field={fields?.mm} />
                     </div>
