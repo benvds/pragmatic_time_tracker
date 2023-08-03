@@ -17,6 +17,7 @@ import {
     type FieldParsers,
     type Fields,
     type OkField,
+    useForm,
 } from "@/lib/form";
 
 import styles from "./index.module.css";
@@ -79,43 +80,15 @@ const fieldParsers: FieldParsers<EntryFieldName> = {
     mm: parseMm,
 } as const;
 
-type EntryFieldsState = Partial<EntryFields> | undefined;
-
-// TODO move to lib form
-
-type Setter<T> = (value: T | ((prevState: T) => T)) => void;
-
-const setFieldsForFormEvent = <S,>(
-    setFields: Setter<S>,
-    parsers: FieldParsers, /// <keyof S>, then S must be an string keyed record
-    evt: FormEvent<HTMLFormElement>,
-) => {
-    const formData = new FormData(evt.currentTarget);
-    const parsed = Object.fromEntries(
-        Object.entries(parsers).map(([name, parser]) => [
-            name,
-            parser(formData.get(name) as string),
-        ]),
-    ) as Required<NonNullable<S>>;
-
-    setFields(parsed);
-
-    return parsed;
-};
-const setFieldForInputEvent =
-    <S,>(field: EntryFieldName, setFields: Setter<S>, parsers: FieldParsers) =>
-    (evt: FocusEvent<HTMLInputElement> | ChangeEvent<HTMLInputElement>) => {
-        const parsed = parsers[field](evt.currentTarget.value);
-        setFields((prev = {} as S) => ({ ...prev, [field]: parsed }));
-    };
+// type EntryFieldsState = Partial<EntryFields> | undefined;
 
 export const EntryForm = () => {
-    const [fields, setFields] = useState<EntryFieldsState>();
+    const {fields, reset, setField, setFields} = useForm<EntryFields>({ parsers: fieldParsers });
 
     const handleSubmit: FormEventHandler<HTMLFormElement> = (evt) => {
         evt.preventDefault();
 
-        const parsed = setFieldsForFormEvent(setFields, fieldParsers, evt);
+        const parsed = setFields(evt);
 
         if (everyFieldOk(parsed)) {
             const entry = {
@@ -130,15 +103,11 @@ export const EntryForm = () => {
         }
     };
 
-    const handleReset = () => {
-        setFields(undefined);
-    };
-
     return (
         <form
             className={styles.form}
             onSubmit={handleSubmit}
-            onReset={handleReset}
+            onReset={reset}
             noValidate
         >
             <div className={styles.formField}>
@@ -147,10 +116,8 @@ export const EntryForm = () => {
                     type="text"
                     name="description"
                     tabIndex={0}
-                    onBlur={setFieldForInputEvent(
-                        "description",
-                        setFields,
-                        fieldParsers,
+                    onBlur={setField(
+                        "description"
                     )}
                 />
                 <FieldError field={fields?.description} />
@@ -161,10 +128,8 @@ export const EntryForm = () => {
                     type="text"
                     name="project"
                     tabIndex={0}
-                    onBlur={setFieldForInputEvent(
+                    onBlur={setField(
                         "project",
-                        setFields,
-                        fieldParsers,
                     )}
                 />
                 <FieldError field={fields?.project} />
@@ -180,10 +145,8 @@ export const EntryForm = () => {
                             tabIndex={0}
                             min={hhMin}
                             max={hhMax}
-                            onBlur={setFieldForInputEvent(
+                            onBlur={setField(
                                 "hh",
-                                setFields,
-                                fieldParsers,
                             )}
                         />
                         <FieldError field={fields?.hh} />
@@ -196,10 +159,8 @@ export const EntryForm = () => {
                             tabIndex={0}
                             min={mmMin}
                             max={mmMax}
-                            onBlur={setFieldForInputEvent(
+                            onBlur={setField(
                                 "mm",
-                                setFields,
-                                fieldParsers,
                             )}
                         />
                         <FieldError field={fields?.mm} />
