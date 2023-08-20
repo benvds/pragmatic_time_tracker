@@ -1,17 +1,10 @@
 import {
-    ChangeEvent,
-    Dispatch,
-    FocusEvent,
-    FormEvent,
-    FormEventHandler,
-    SetStateAction,
-    useState,
+    type FormEventHandler,
 } from "react";
 
 import { Button } from "@/components/button";
 import {
     everyFieldOk,
-    Field,
     FieldError,
     type FieldParser,
     type FieldParsers,
@@ -79,8 +72,6 @@ const fieldParsers: FieldParsers<EntryFieldName> = {
     hh: parseHh,
     mm: parseMm,
 } as const;
-
-// type EntryFieldsState = Partial<EntryFields> | undefined;
 
 export const EntryForm = () => {
     const {fields, reset, setField, setFields} = useForm<EntryFields>({ parsers: fieldParsers });
