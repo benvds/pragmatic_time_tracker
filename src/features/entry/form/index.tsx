@@ -17,7 +17,7 @@ import styles from "./index.module.css";
 
 const entryFieldNames = ["description", "project", "hh", "mm"] as const;
 type EntryFieldName = (typeof entryFieldNames)[number];
-type EntryFields = Fields<EntryFieldName>;
+// type EntryFields = Fields<EntryFieldName>;
 
 const descriptionMinLength = 3;
 const projectMinLength = 2;
@@ -66,23 +66,29 @@ const parseMm: FieldParser<number> = (input) => {
     }
 };
 
+// 5. this should contain everything for useForm
 const fieldParsers: FieldParsers<EntryFieldName> = {
     description: parseDescription,
     project: parseProject,
     hh: parseHh,
     mm: parseMm,
 } as const;
+type EntryFields = Fields<typeof fieldParsers>;
 
 export const EntryForm = () => {
-    const {fields, reset, setField, setFields} = useForm<EntryFields>({ parsers: fieldParsers });
+    // 4. useForm takes parsers en gives back the helper functions
+    const {fields, reset, setField, setFields} = useForm<EntryFields /* this could be deducted from parsers*/>({ parsers: fieldParsers });
 
     const handleSubmit: FormEventHandler<HTMLFormElement> = (evt) => {
         evt.preventDefault();
 
+        // 3. setfields casts to Partial EntryFields
         const parsed = setFields(evt);
 
+        // 2. everFieldOk casts fields to their OkField
         if (everyFieldOk(parsed)) {
             const entry = {
+                // 1. here i want to know that parsed is a string
                 description: (parsed.description as OkField<string>).value,
                 project: (parsed.project as OkField<string>).value,
                 duration:
