@@ -8,7 +8,7 @@
         "build": "tsc && vite build",
         "preview": "vite preview",
         "lint:fix": "eslint ./src --ext .jsx,.js,.ts,.tsx --quiet --fix --ignore-path ./.gitignore",
-        "lint:format": "prettier --log-level warn --write \"./**/*.{js,jsx,ts,tsx,html,css,md,json}\" ",
+        "lint:format": "prettier --log-level warn --write \"./**/*.{js,jsx,ts,tsx,html,css,json}\" ",
         "lint": "pnpm lint:format && pnpm lint:fix ",
         "typecheck": "tsc --noEmit",
         "test": "vitest",
