@@ -1,6 +1,4 @@
-import {
-    type FormEventHandler,
-} from "react";
+import { type FormEventHandler } from "react";
 
 import { Button } from "@/components/button";
 import {
@@ -28,9 +26,12 @@ const mmMax = 59;
 
 const parseDescription: FieldParser<string> = (input) => {
     if (input === null || input.length === 0) {
-        return { error: `Required` };
+        return { value: input, error: `Required` };
     } else if (input.length < descriptionMinLength) {
-        return { error: `At least ${descriptionMinLength} characters needed` };
+        return {
+            value: input,
+            error: `At least ${descriptionMinLength} characters needed`,
+        };
     } else {
         return { value: input };
     }
@@ -38,9 +39,12 @@ const parseDescription: FieldParser<string> = (input) => {
 
 const parseProject: FieldParser<string> = (input) => {
     if (input === null || input.length === 0) {
-        return { error: `Required` };
+        return { value: input, error: `Required` };
     } else if (input.length < projectMinLength) {
-        return { error: `At least ${projectMinLength} characters needed` };
+        return {
+            value: input,
+            error: `At least ${projectMinLength} characters needed`,
+        };
     } else {
         return { value: input };
     }
@@ -50,7 +54,10 @@ const parseHh: FieldParser<number> = (input) => {
     const parsed = Number.parseInt(input ?? "");
 
     if (Number.isNaN(parsed) || parsed < hhMin || parsed > hhMax) {
-        return { error: `Should be a number between ${hhMin} and ${hhMax}.` };
+        return {
+            value: input,
+            error: `Should be a number between ${hhMin} and ${hhMax}.`,
+        };
     } else {
         return { value: parsed };
     }
@@ -60,7 +67,10 @@ const parseMm: FieldParser<number> = (input) => {
     const parsed = Number.parseInt(input ?? "");
 
     if (Number.isNaN(parsed) || parsed < mmMin || parsed > mmMax) {
-        return { error: `Should be a number between ${mmMin} and ${mmMax}.` };
+        return {
+            value: input,
+            error: `Should be a number between ${mmMin} and ${mmMax}.`,
+        };
     } else {
         return { value: parsed };
     }
@@ -77,7 +87,10 @@ type EntryFields = Fields<typeof fieldParsers>;
 
 export const EntryForm = () => {
     // 4. useForm takes parsers en gives back the helper functions
-    const {fields, reset, setField, setFields} = useForm<EntryFields /* this could be deducted from parsers*/>({ parsers: fieldParsers });
+    const { fields, reset, setField, setFields } =
+        useForm<EntryFields /* this could be deducted from parsers*/>({
+            parsers: fieldParsers,
+        });
 
     const handleSubmit: FormEventHandler<HTMLFormElement> = (evt) => {
         evt.preventDefault();
@@ -113,9 +126,7 @@ export const EntryForm = () => {
                     type="text"
                     name="description"
                     tabIndex={0}
-                    onBlur={setField(
-                        "description"
-                    )}
+                    onBlur={setField("description")}
                 />
                 <FieldError field={fields?.description} />
             </div>
@@ -125,9 +136,7 @@ export const EntryForm = () => {
                     type="text"
                     name="project"
                     tabIndex={0}
-                    onBlur={setField(
-                        "project",
-                    )}
+                    onBlur={setField("project")}
                 />
                 <FieldError field={fields?.project} />
             </div>
@@ -142,9 +151,7 @@ export const EntryForm = () => {
                             tabIndex={0}
                             min={hhMin}
                             max={hhMax}
-                            onBlur={setField(
-                                "hh",
-                            )}
+                            onBlur={setField("hh")}
                         />
                         <FieldError field={fields?.hh} />
                     </div>
@@ -156,9 +163,7 @@ export const EntryForm = () => {
                             tabIndex={0}
                             min={mmMin}
                             max={mmMax}
-                            onBlur={setField(
-                                "mm",
-                            )}
+                            onBlur={setField("mm")}
                         />
                         <FieldError field={fields?.mm} />
                     </div>
