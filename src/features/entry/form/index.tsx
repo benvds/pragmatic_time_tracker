@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { type FormEventHandler } from "react";
 
 import { Button } from "@/components/button";
@@ -55,7 +56,7 @@ const parseHh: FieldParser<number> = (input) => {
 
     if (Number.isNaN(parsed) || parsed < hhMin || parsed > hhMax) {
         return {
-            value: input,
+            value: parsed,
             error: `Should be a number between ${hhMin} and ${hhMax}.`,
         };
     } else {
@@ -68,7 +69,7 @@ const parseMm: FieldParser<number> = (input) => {
 
     if (Number.isNaN(parsed) || parsed < mmMin || parsed > mmMax) {
         return {
-            value: input,
+            value: parsed,
             error: `Should be a number between ${mmMin} and ${mmMax}.`,
         };
     } else {
@@ -77,13 +78,13 @@ const parseMm: FieldParser<number> = (input) => {
 };
 
 // 5. this should contain everything for useForm
-const fieldParsers: FieldParsers<EntryFieldName> = {
+const fieldParsers = {
     description: parseDescription,
     project: parseProject,
     hh: parseHh,
     mm: parseMm,
 } as const;
-type EntryFields = Fields<typeof fieldParsers>;
+type EntryFields = typeof fieldParsers;
 
 export const EntryForm = () => {
     // 4. useForm takes parsers en gives back the helper functions

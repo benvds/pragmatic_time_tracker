@@ -4,6 +4,7 @@ import {
     type FormEvent,
     useState,
 } from "react";
+import type { Entries } from "type-fest";
 
 import { type FieldParsers } from ".";
 
@@ -30,36 +31,40 @@ type Setter<T> = (value: T | ((prevState: T) => T)) => void;
 // type FieldsState = Record<string, unknown> | undefined;
 
 const setFieldsForFormEvent =
-    <S>({
+    <P extends FieldParsers, S>({
         parsers,
         setFields,
     }: {
+        parsers: P;
         setFields: Setter<S>;
-        parsers: FieldParsers; /// <keyof S>, then S must be an string keyed record
     }) =>
     (evt: FormEvent<HTMLFormElement>) => {
         const formData = new FormData(evt.currentTarget);
-        const parsed = Object.fromEntries(
-            Object.entries(parsers).map(([name, parser]) => [
-                name,
-                parser(formData.get(name) as string),
-            ]),
-        ) as Required<NonNullable<S>>;
+        const parserEntries = Object.entries(parsers) as Entries<P>;
+        // TODO HERE retain type info
+        // const parsedEntries = parserEntries.map(([name, parser]: [keyof P, P[keyof P]) => [
+        const parsedEntries = parserEntries.map(
+            ([name, parser]) =>
+                [name, parser(formData.get(name) as string)] as const,
+        );
+        const parsed = Object.fromEntries(parsedEntries);
 
         setFields(parsed);
 
         return parsed;
     };
+
 const setFieldForInputEvent =
-    <S>({
+    <P extends FieldParsers, S>({
         parsers,
         setFields,
     }: {
+        parsers: P; /// <keyof S>, then S must be an string keyed record
         setFields: Setter<S>;
-        parsers: FieldParsers; /// <keyof S>, then S must be an string keyed record
     }) =>
-    (field: string) =>
+    (field: keyof P) =>
     (evt: FocusEvent<HTMLInputElement> | ChangeEvent<HTMLInputElement>) => {
-        const parsed = parsers[field](evt.currentTarget.value);
+        const parser = parsers[field];
+        const parsed = parser(evt.currentTarget.value);
         setFields((prev = {} as S) => ({ ...prev, [field]: parsed }));
     };

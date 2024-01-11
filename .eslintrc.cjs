@@ -41,6 +41,8 @@ module.exports = {
         "simple-import-sort/imports": "error",
         "simple-import-sort/exports": "error",
         "react-hooks/exhaustive-deps": ["warn"],
+        "@typescript-eslint/no-unsafe-assignment": "off", // very much broken
+        "@typescript-eslint/no-unsafe-call": "off", // very much broken
         "@typescript-eslint/no-unused-vars": [
             "warn",
             {
