@@ -103,7 +103,8 @@ export const EntryForm = () => {
         if (everyFieldOk(parsed)) {
             const entry = {
                 // 1. here i want to know that parsed is a string
-                description: (parsed.description as OkField<string>).value,
+                // description: (parsed.description as OkField<string>).value,
+                description: parsed.description.value,
                 project: (parsed.project as OkField<string>).value,
                 duration:
                     (parsed.hh as OkField<number>).value * 60 +
