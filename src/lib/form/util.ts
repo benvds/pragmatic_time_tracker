@@ -1,7 +1,6 @@
-export type OkField<T = unknown> = { value: T; error?: never };
-
-export type ErrorField<T = unknown> = {
-    value: T | undefined | null;
+export type OkField<T> = { value: T; error?: never };
+export type ErrorField<T> = {
+    value: T | string | null | undefined;
     error: string;
 };
 
