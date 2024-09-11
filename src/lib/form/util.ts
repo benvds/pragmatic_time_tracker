@@ -7,29 +7,53 @@ export type ErrorField<T = unknown> = {
 
 export type Field<T = unknown> = ErrorField<T> | OkField<T>;
 
-export type FieldParser<T = unknown> = (inputValue: string | null) => Field<T>;
+export type FieldParserInput = FormDataEntryValue | null;
+
+export type FieldParser<T = unknown> = (
+    inputValue: FieldParserInput,
+) => Field<T>;
+
 export type FieldParsers = Record<string, FieldParser>;
 
-export type FieldKey = string;
+// export type FieldKey = string;
 
-export type Fields = Record<string, Field>;
-export type FieldsAllOk<F extends Fields> = {
-    // type is lost in fields? not unless this function is returned from the original hook
-    [Key in keyof F]: OkField<Fields[Key]>;
+export type FormState<FP extends FieldParsers> = {
+    [K in keyof FP]: ReturnType<FP[K]>;
 };
 
-export type FieldParserValue<FP> = FP extends FieldParser<infer T> ? T : never;
-export type ParserType<
-    P extends FieldParsers,
-    K extends keyof P,
-> = FieldParserValue<P[K]>;
+// export type Fields = Record<string, Field>;
+
+type OkFieldFromField<F extends Field> = F extends Field<infer T>
+    ? OkField<T>
+    : never;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type ErrorFieldFromField<F extends Field> = F extends Field<infer T>
+    ? ErrorField<T>
+    : never;
+
+type OkFieldFromFieldParser<FP> = FP extends FieldParser<infer T>
+    ? OkField<T>
+    : never;
+
+// TODO HERE @benvds
+export type FieldsAllOk<FP extends FieldParsers> = {
+    [K in keyof FP]: OkFieldFromFieldParser<FP[K]>;
+};
 
 export const isErrorField = <T>(field: Field<T>): field is ErrorField<T> =>
     "error" in field;
 
-export const isOkField = <T = unknown>(field: Field<T>): field is OkField<T> =>
+export const isOkField = <T>(field: Field<T>): field is OkField<T> =>
     !isErrorField(field);
 
-export const everyFieldOk = <F extends Fields>(
-    fields: F,
-): fields is FieldsAllOk<F> => Object.values(fields).every(isOkField);
+export const everyFieldOk = <FP extends FieldParsers>(
+    fieldParsers: FP,
+    state: unknown, // Partial<FormState<FP>>, this just doesnt work, dont even try
+): state is FieldsAllOk<FP> => {
+    return Object.keys(fieldParsers).every((fieldName: keyof FP) => {
+        type FieldType = ReturnType<FP[keyof FP]>;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+        const fieldState = (state as any)[fieldName] as FieldType; // const fieldState: Field<unknown> <-- unknown HERE
+        return fieldState !== undefined && isOkField(fieldState);
+    }) as boolean;
+};

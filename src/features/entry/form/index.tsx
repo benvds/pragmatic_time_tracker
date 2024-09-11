@@ -7,7 +7,8 @@ import {
     FieldError,
     type FieldParser,
     type FieldParsers,
-    type Fields,
+    // type Fields,
+    FieldsAllOk,
     type OkField,
     useForm,
 } from "@/lib/form";
@@ -88,7 +89,7 @@ type EntryFields = typeof fieldParsers;
 
 export const EntryForm = () => {
     // 4. useForm takes parsers en gives back the helper functions
-    const { fields, reset, setField, setFields } =
+    const { fields, reset, setField, setFields, allFieldsOk } =
         useForm<EntryFields /* this could be deducted from parsers*/>({
             parsers: fieldParsers,
         });
@@ -99,15 +100,16 @@ export const EntryForm = () => {
         // 3. setfields casts to Partial EntryFields
         const parsed = setFields(evt);
 
+        type p = typeof parsed;
+        type op = FieldsAllOk<p>;
+
         // 2. everFieldOk casts fields to their OkField
-        if (everyFieldOk(parsed)) {
+        if (allFieldsOk(parsed)) {
             const entry = {
                 // 1. here i want to know that parsed is a string
-                description: (parsed.description as OkField<string>).value,
-                project: (parsed.project as OkField<string>).value,
-                duration:
-                    (parsed.hh as OkField<number>).value * 60 +
-                    (parsed.mm as OkField<number>).value,
+                description: parsed.description.value,
+                project: parsed.project.value,
+                duration: parsed.hh.value * 60 + parsed.mm.value,
             };
 
             console.debug("entry", entry);
