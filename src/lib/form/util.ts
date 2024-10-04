@@ -6,7 +6,7 @@ export type ErrorField<T> = {
 
 export type Field<T = unknown> = ErrorField<T> | OkField<T>;
 
-export type FieldParserInput = FormDataEntryValue | null;
+export type FieldParserInput = string | null;
 
 export type FieldParser<T = unknown> = (
     inputValue: FieldParserInput,
