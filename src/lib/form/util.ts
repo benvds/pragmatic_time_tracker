@@ -34,8 +34,9 @@ type OkFieldFromFieldParser<FP> = FP extends FieldParser<infer T>
     ? OkField<T>
     : never;
 
-// TODO HERE @benvds
-export type FieldsAllOk<FP extends FieldParsers> = {
+// TODO HERE @benvds,
+export type FieldsAllOk<FP extends Partial<FormState<any>>> = {
+    // TODO Here check if field extends OkField
     [K in keyof FP]: OkFieldFromFieldParser<FP[K]>;
 };
 
