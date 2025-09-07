@@ -1,4 +1,4 @@
-import { Field } from ".";
+import { type Field } from ".";
 import styles from "./field-error.module.css";
 
 export const FieldError = ({ field }: { field?: Field<unknown> }) =>
