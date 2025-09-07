@@ -26,10 +26,8 @@ export const useForm = <T extends Record<string, unknown>>({
         setFields: setFieldsForFormEvent<T>({ setFields, parsers }),
     };
 };
-// TODO: use the react setter type directly
-type Setter<T> = (value: T | ((prevState: T) => T)) => void;
 
-// type FieldsState = Record<string, unknown> | undefined;
+type Setter<T> = (value: T | ((prevState: T) => T)) => void;
 
 const setFieldsForFormEvent =
     <T extends Record<string, unknown>>({
@@ -55,6 +53,7 @@ const setFieldsForFormEvent =
         }
 
         setFields(result);
+
         return result;
     };
 
@@ -70,6 +69,7 @@ const setFieldForInputEvent =
     (evt: FocusEvent<HTMLInputElement> | ChangeEvent<HTMLInputElement>) => {
         const parser = parsers[field];
         const parsed = parser(evt.currentTarget.value);
+
         setFields((prev = {} as Partial<{ [K in keyof T]: Field<T[K]> }>) => ({
             ...prev,
             [field]: parsed,

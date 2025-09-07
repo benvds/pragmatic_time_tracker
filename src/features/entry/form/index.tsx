@@ -5,7 +5,6 @@ import {
     everyFieldOk,
     FieldError,
     type FieldParser,
-    type Fields,
     useForm,
 } from "@/lib/form";
 
@@ -70,7 +69,6 @@ const parseMm: FieldParser<number> = (input) => {
     }
 };
 
-// 5. this should contain everything for useForm
 const fieldParsers = {
     description: parseDescription,
     project: parseProject,
@@ -78,30 +76,18 @@ const fieldParsers = {
     mm: parseMm,
 };
 
-// Infer the types from the parsers
-type EntryData = {
-    description: string;
-    project: string;
-    hh: number;
-    mm: number;
-};
-
 export const EntryForm = () => {
-    // 4. useForm takes parsers and gives back the helper functions with inferred types
-    const { fields, reset, setField, setFields } = useForm<EntryData>({
+    const { fields, reset, setField, setFields } = useForm({
         parsers: fieldParsers,
     });
 
     const handleSubmit: FormEventHandler<HTMLFormElement> = (evt) => {
         evt.preventDefault();
 
-        // 3. setfields casts to Partial EntryFields
         const parsed = setFields(evt);
 
-        // 2. everFieldOk casts fields to their OkField
-        if (everyFieldOk<EntryData>(parsed)) {
+        if (everyFieldOk(parsed)) {
             const entry = {
-                // 1. here we know the fields have been validated as OK
                 description: parsed.description.value,
                 project: parsed.project.value,
                 duration: parsed.hh.value * 60 + parsed.mm.value,
