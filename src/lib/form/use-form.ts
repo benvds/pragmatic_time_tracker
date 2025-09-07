@@ -5,61 +5,73 @@ import {
     useState,
 } from "react";
 
-import { type FieldParsers } from ".";
+import { type Field, type FieldParser } from "./util";
 
-export const useForm = <S extends Record<string, unknown>>({
+export const useForm = <T extends Record<string, unknown>>({
     initial = {},
     parsers,
 }: {
-    initial?: Partial<S>;
-    parsers: FieldParsers;
+    initial?: Partial<{ [K in keyof T]: Field<T[K]> }>;
+    parsers: { [K in keyof T]: FieldParser<T[K]> };
 }) => {
-    const [fields, setFields] = useState<Partial<S>>(initial);
+    const [fields, setFields] =
+        useState<Partial<{ [K in keyof T]: Field<T[K]> }>>(initial);
 
     const reset = () => setFields(initial);
 
     return {
         fields,
         reset,
-        setField: setFieldForInputEvent({ setFields, parsers }),
-        setFields: setFieldsForFormEvent({ setFields, parsers }),
+        setField: setFieldForInputEvent<T>({ setFields, parsers }),
+        setFields: setFieldsForFormEvent<T>({ setFields, parsers }),
     };
 };
+// TODO: use the react setter type directly
 type Setter<T> = (value: T | ((prevState: T) => T)) => void;
 
 // type FieldsState = Record<string, unknown> | undefined;
 
 const setFieldsForFormEvent =
-    <S>({
+    <T extends Record<string, unknown>>({
         parsers,
         setFields,
     }: {
-        setFields: Setter<S>;
-        parsers: FieldParsers; /// <keyof S>, then S must be an string keyed record
+        setFields: Setter<Partial<{ [K in keyof T]: Field<T[K]> }>>;
+        parsers: { [K in keyof T]: FieldParser<T[K]> };
     }) =>
-    (evt: FormEvent<HTMLFormElement>) => {
+    (evt: FormEvent<HTMLFormElement>): { [K in keyof T]: Field<T[K]> } => {
         const formData = new FormData(evt.currentTarget);
-        const parsed = Object.fromEntries(
-            Object.entries(parsers).map(([name, parser]) => [
-                name,
-                parser(formData.get(name) as string),
-            ]),
-        ) as Required<NonNullable<S>>;
 
-        setFields(parsed);
+        // Create a properly typed result object
+        const result = {} as { [K in keyof T]: Field<T[K]> };
 
-        return parsed;
+        // Process each field with its corresponding parser
+        for (const key in parsers) {
+            if (Object.prototype.hasOwnProperty.call(parsers, key)) {
+                const fieldKey = key as keyof T;
+                const parser = parsers[fieldKey];
+                result[fieldKey] = parser(formData.get(key) as string);
+            }
+        }
+
+        setFields(result);
+        return result;
     };
+
 const setFieldForInputEvent =
-    <S>({
+    <T extends Record<string, unknown>>({
         parsers,
         setFields,
     }: {
-        setFields: Setter<S>;
-        parsers: FieldParsers; /// <keyof S>, then S must be an string keyed record
+        parsers: { [K in keyof T]: FieldParser<T[K]> };
+        setFields: Setter<Partial<{ [K in keyof T]: Field<T[K]> }>>;
     }) =>
-    (field: string) =>
+    <K extends keyof T>(field: K) =>
     (evt: FocusEvent<HTMLInputElement> | ChangeEvent<HTMLInputElement>) => {
-        const parsed = parsers[field](evt.currentTarget.value);
-        setFields((prev = {} as S) => ({ ...prev, [field]: parsed }));
+        const parser = parsers[field];
+        const parsed = parser(evt.currentTarget.value);
+        setFields((prev = {} as Partial<{ [K in keyof T]: Field<T[K]> }>) => ({
+            ...prev,
+            [field]: parsed,
+        }));
     };

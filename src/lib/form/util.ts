@@ -1,21 +1,25 @@
-export type OkField<T = unknown> = { value: T; error?: never };
-export type ErrorField = { error: string };
-export type Field<T = unknown> = ErrorField | OkField<T>;
-export type FieldParser<T = unknown> = (inputValue: string | null) => Field<T>;
-export type Fields<
-    Key extends string = string,
-    F extends Field = Field,
-> = Record<Key, F>;
-export type FieldParsers<Key extends string = string> = Record<
-    Key,
-    FieldParser
->;
+type InputValue = HTMLInputElement["value"];
 
-export const isErrorField = <T>(field: Field<T>): field is ErrorField =>
+export type OkField<T> = { value: T; error?: never };
+export type ErrorField<T> = { value: T | undefined; error: string };
+export type Field<T> = ErrorField<T> | OkField<T>;
+export type FieldParser<T> = (inputValue: InputValue) => Field<T>;
+export type Fields<T = Record<string, unknown>> = {
+    [K in keyof T]: Field<T[K]>;
+};
+export type OkFields<T = Record<string, unknown>> = {
+    [K in keyof T]: OkField<T[K]>;
+};
+
+export type FieldParsers<T = Record<string, unknown>> = {
+    [K in keyof T]: FieldParser<T[K]>;
+};
+
+export const isErrorField = <T>(field: Field<T>): field is ErrorField<T> =>
     "error" in field;
 
 export const isOkField = <T>(field: Field<T>): field is OkField<T> =>
     !isErrorField(field);
 
-export const everyFieldOk = (fields: Fields) =>
-    Object.values(fields).every(isOkField);
+export const everyFieldOk = <T>(fields: Fields<T>): fields is OkFields<T> =>
+    Object.values(fields).every((field) => isOkField(field as Field<unknown>));
