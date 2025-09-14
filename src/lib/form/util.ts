@@ -23,3 +23,55 @@ export const isOkField = <T>(field: Field<T>): field is OkField<T> =>
 
 export const everyFieldOk = <T>(fields: Fields<T>): fields is OkFields<T> =>
     Object.values(fields).every((field) => isOkField(field as Field<unknown>));
+
+/**
+ * Parse and validate ISO date string (YYYY-MM-DD)
+ * Validates format and ensures date is not in the future
+ */
+export const parseDate: FieldParser<string> = (input) => {
+    if (input === null || input.length === 0) {
+        return { value: undefined, error: "Date is required" };
+    }
+
+    // Check ISO date format (YYYY-MM-DD)
+    const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!isoDateRegex.test(input)) {
+        return {
+            value: undefined,
+            error: "Date must be in YYYY-MM-DD format",
+        };
+    }
+
+    // Validate that it's a real date
+    const date = new Date(input);
+    if (isNaN(date.getTime())) {
+        return {
+            value: undefined,
+            error: "Invalid date",
+        };
+    }
+
+    // Check that the input matches what we get back (handles invalid dates like Feb 30)
+    const isoString = date.toISOString().split("T")[0];
+    if (isoString !== input) {
+        return {
+            value: undefined,
+            error: "Invalid date",
+        };
+    }
+
+    // Check that date is not in the future
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const inputDate = new Date(input);
+    inputDate.setHours(0, 0, 0, 0);
+
+    if (inputDate > today) {
+        return {
+            value: undefined,
+            error: "Cannot create entries for future dates",
+        };
+    }
+
+    return { value: input };
+};
