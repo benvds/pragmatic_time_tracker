@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 
 import { EntryForm, TimeEntryList } from "@/features/entry";
 
@@ -25,7 +26,7 @@ Object.defineProperty(window, "localStorage", {
 });
 
 // Mock alert
-const mockAlert = jest.fn();
+const mockAlert = vi.fn();
 Object.defineProperty(window, "alert", {
     value: mockAlert,
 });
@@ -70,7 +71,9 @@ describe("Data Persistence - Integration Tests", () => {
         });
 
         // Verify both entries are saved
-        const savedData = JSON.parse(mockLocalStorage.getItem("time-tracker-data") || "[]");
+        const savedData = JSON.parse(
+            mockLocalStorage.getItem("time-tracker-data") || "[]",
+        );
         expect(savedData).toHaveLength(2);
 
         // Verify data integrity
@@ -86,13 +89,15 @@ describe("Data Persistence - Integration Tests", () => {
         });
 
         // Verify all entries have required fields
-        savedData.forEach(entry => {
+        savedData.forEach((entry) => {
             expect(entry).toHaveProperty("id");
             expect(entry).toHaveProperty("date");
             expect(entry).toHaveProperty("createdAt");
             expect(entry).toHaveProperty("updatedAt");
             expect(typeof entry.id).toBe("string");
-            expect(entry.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+            expect(entry.id).toMatch(
+                /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+            );
         });
     });
 
@@ -132,7 +137,9 @@ describe("Data Persistence - Integration Tests", () => {
         });
 
         // Verify only one entry exists and it's updated
-        const savedData = JSON.parse(mockLocalStorage.getItem("time-tracker-data") || "[]");
+        const savedData = JSON.parse(
+            mockLocalStorage.getItem("time-tracker-data") || "[]",
+        );
         expect(savedData).toHaveLength(1);
         expect(savedData[0]).toMatchObject({
             date: "2024-01-15",
@@ -147,7 +154,7 @@ describe("Data Persistence - Integration Tests", () => {
 
         // Mock localStorage to throw error on setItem
         const originalSetItem = mockLocalStorage.setItem;
-        mockLocalStorage.setItem = jest.fn(() => {
+        mockLocalStorage.setItem = vi.fn(() => {
             throw new Error("Storage quota exceeded");
         });
 
@@ -166,7 +173,7 @@ describe("Data Persistence - Integration Tests", () => {
         // Should show error message
         await waitFor(() => {
             expect(mockAlert).toHaveBeenCalledWith(
-                "Failed to save time entry. Please try again."
+                "Failed to save time entry. Please try again.",
             );
         });
 
@@ -185,7 +192,7 @@ describe("Data Persistence - Integration Tests", () => {
                 duration: 120,
                 createdAt: "2024-01-15T10:00:00.000Z",
                 updatedAt: "2024-01-15T10:00:00.000Z",
-            }
+            },
         ];
         mockLocalStorage.setItem("time-tracker-data", JSON.stringify(testData));
 

@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 
 import { EntryForm } from "@/features/entry";
 
@@ -25,7 +26,7 @@ Object.defineProperty(window, "localStorage", {
 });
 
 // Mock alert to avoid browser dialogs during tests
-const mockAlert = jest.fn();
+const mockAlert = vi.fn();
 Object.defineProperty(window, "alert", {
     value: mockAlert,
 });
@@ -45,8 +46,8 @@ describe("EntryForm - Integration Tests", () => {
         const dateInput = screen.getByLabelText(/date/i);
         const descriptionInput = screen.getByLabelText(/description/i);
         const projectInput = screen.getByLabelText(/project/i);
-        const hhInput = screen.getByDisplayValue("") // hours input
-        const mmInput = screen.getAllByDisplayValue("")[1]; // minutes input (second empty input)
+        const hhInput = screen.getByRole("spinbutton", { name: /hh/i });
+        const mmInput = screen.getByRole("spinbutton", { name: /mm/i });
         const submitButton = screen.getByRole("button", { name: /save/i });
 
         // Fill in form with valid data
@@ -64,12 +65,14 @@ describe("EntryForm - Integration Tests", () => {
         // Wait for localStorage to be updated
         await waitFor(() => {
             expect(mockAlert).toHaveBeenCalledWith(
-                expect.stringContaining("Time entry saved successfully!")
+                expect.stringContaining("Time entry saved successfully!"),
             );
         });
 
         // Verify data was saved to localStorage
-        const savedData = JSON.parse(mockLocalStorage.getItem("time-tracker-data") || "[]");
+        const savedData = JSON.parse(
+            mockLocalStorage.getItem("time-tracker-data") || "[]",
+        );
         expect(savedData).toHaveLength(1);
         expect(savedData[0]).toMatchObject({
             date: "2024-01-15",
@@ -84,7 +87,7 @@ describe("EntryForm - Integration Tests", () => {
 
     it("should dispatch custom event when form is submitted successfully", async () => {
         const user = userEvent.setup();
-        const eventListener = jest.fn();
+        const eventListener = vi.fn();
 
         window.addEventListener("timeEntryUpdated", eventListener);
 
@@ -111,7 +114,7 @@ describe("EntryForm - Integration Tests", () => {
         // Wait for custom event to be dispatched
         await waitFor(() => {
             expect(eventListener).toHaveBeenCalledWith(
-                expect.objectContaining({ type: "timeEntryUpdated" })
+                expect.objectContaining({ type: "timeEntryUpdated" }),
             );
         });
 

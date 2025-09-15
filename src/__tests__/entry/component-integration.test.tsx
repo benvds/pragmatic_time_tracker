@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 
 import { App } from "@/App";
 import { EntryForm, TimeEntryList } from "@/features/entry";
@@ -26,7 +27,7 @@ Object.defineProperty(window, "localStorage", {
 });
 
 // Mock alert
-const mockAlert = jest.fn();
+const mockAlert = vi.fn();
 Object.defineProperty(window, "alert", {
     value: mockAlert,
 });
@@ -59,19 +60,23 @@ describe("Component Integration - Integration Tests", () => {
         // Wait for success alert
         await waitFor(() => {
             expect(mockAlert).toHaveBeenCalledWith(
-                expect.stringContaining("Time entry saved successfully!")
+                expect.stringContaining("Time entry saved successfully!"),
             );
         });
 
         // TimeEntryList should now display the new entry
         await waitFor(() => {
-            expect(screen.getByText("Integration test task")).toBeInTheDocument();
+            expect(
+                screen.getByText("Integration test task"),
+            ).toBeInTheDocument();
             expect(screen.getByText("Test Project")).toBeInTheDocument();
             expect(screen.getByText("2h 0m")).toBeInTheDocument();
         });
 
         // "No entries" message should be gone
-        expect(screen.queryByText("No time entries yet")).not.toBeInTheDocument();
+        expect(
+            screen.queryByText("No time entries yet"),
+        ).not.toBeInTheDocument();
     });
 
     it("should update TimeEntryList when multiple entries are added", async () => {
@@ -143,7 +148,9 @@ describe("Component Integration - Integration Tests", () => {
 
         // Entry should be removed from display
         await waitFor(() => {
-            expect(screen.queryByText("Task to delete")).not.toBeInTheDocument();
+            expect(
+                screen.queryByText("Task to delete"),
+            ).not.toBeInTheDocument();
             expect(screen.getByText("No time entries yet")).toBeInTheDocument();
         });
     });
@@ -200,9 +207,12 @@ describe("Component Integration - Integration Tests", () => {
                 duration: 90,
                 createdAt: "2024-01-10T10:00:00.000Z",
                 updatedAt: "2024-01-10T10:00:00.000Z",
-            }
+            },
         ];
-        mockLocalStorage.setItem("time-tracker-data", JSON.stringify(existingData));
+        mockLocalStorage.setItem(
+            "time-tracker-data",
+            JSON.stringify(existingData),
+        );
 
         render(<App />);
 
@@ -234,7 +244,9 @@ describe("Component Integration - Integration Tests", () => {
         });
 
         // Verify localStorage contains both entries
-        const updatedData = JSON.parse(mockLocalStorage.getItem("time-tracker-data") || "[]");
+        const updatedData = JSON.parse(
+            mockLocalStorage.getItem("time-tracker-data") || "[]",
+        );
         expect(updatedData).toHaveLength(2);
     });
 
@@ -243,7 +255,7 @@ describe("Component Integration - Integration Tests", () => {
 
         // Mock localStorage to throw error on getItem
         const originalGetItem = mockLocalStorage.getItem;
-        mockLocalStorage.getItem = jest.fn(() => {
+        mockLocalStorage.getItem = vi.fn(() => {
             throw new Error("LocalStorage error");
         });
 

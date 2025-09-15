@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { vi } from "vitest";
 
 import { EntryForm } from "@/features/entry";
 
@@ -25,7 +26,7 @@ Object.defineProperty(window, "localStorage", {
 });
 
 // Mock alert
-const mockAlert = jest.fn();
+const mockAlert = vi.fn();
 Object.defineProperty(window, "alert", {
     value: mockAlert,
 });
@@ -75,7 +76,9 @@ describe("Form Validation - Integration Tests", () => {
         await user.tab();
 
         await waitFor(() => {
-            expect(screen.getByText("At least 3 characters needed")).toBeInTheDocument();
+            expect(
+                screen.getByText("At least 3 characters needed"),
+            ).toBeInTheDocument();
         });
 
         // Try to submit - should not succeed
@@ -102,7 +105,9 @@ describe("Form Validation - Integration Tests", () => {
         await user.tab();
 
         await waitFor(() => {
-            expect(screen.getByText("At least 2 characters needed")).toBeInTheDocument();
+            expect(
+                screen.getByText("At least 2 characters needed"),
+            ).toBeInTheDocument();
         });
 
         // Try to submit - should not succeed
@@ -129,7 +134,9 @@ describe("Form Validation - Integration Tests", () => {
         await user.tab();
 
         await waitFor(() => {
-            expect(screen.getByText("Should be a number between 0 and 24.")).toBeInTheDocument();
+            expect(
+                screen.getByText("Should be a number between 0 and 24."),
+            ).toBeInTheDocument();
         });
 
         // Try to submit - should not succeed
@@ -142,7 +149,9 @@ describe("Form Validation - Integration Tests", () => {
         await user.tab();
 
         await waitFor(() => {
-            expect(screen.getByText("Should be a number between 0 and 24.")).toBeInTheDocument();
+            expect(
+                screen.getByText("Should be a number between 0 and 24."),
+            ).toBeInTheDocument();
         });
     });
 
@@ -167,7 +176,9 @@ describe("Form Validation - Integration Tests", () => {
         await user.tab();
 
         await waitFor(() => {
-            expect(screen.getByText("Should be a number between 0 and 59.")).toBeInTheDocument();
+            expect(
+                screen.getByText("Should be a number between 0 and 59."),
+            ).toBeInTheDocument();
         });
 
         // Try to submit - should not succeed
@@ -189,7 +200,7 @@ describe("Form Validation - Integration Tests", () => {
         // Test future date (should be prevented)
         const futureDate = new Date();
         futureDate.setDate(futureDate.getDate() + 1);
-        const futureDateString = futureDate.toISOString().split('T')[0];
+        const futureDateString = futureDate.toISOString().split("T")[0];
 
         await user.clear(dateInput);
         await user.type(dateInput, futureDateString);
@@ -201,7 +212,9 @@ describe("Form Validation - Integration Tests", () => {
         await user.tab();
 
         await waitFor(() => {
-            expect(screen.getByText("Date cannot be in the future")).toBeInTheDocument();
+            expect(
+                screen.getByText("Date cannot be in the future"),
+            ).toBeInTheDocument();
         });
 
         // Try to submit - should not succeed
@@ -232,12 +245,14 @@ describe("Form Validation - Integration Tests", () => {
         // Should show success message
         await waitFor(() => {
             expect(mockAlert).toHaveBeenCalledWith(
-                expect.stringContaining("Time entry saved successfully!")
+                expect.stringContaining("Time entry saved successfully!"),
             );
         });
 
         // Should save to localStorage
-        const savedData = JSON.parse(mockLocalStorage.getItem("time-tracker-data") || "[]");
+        const savedData = JSON.parse(
+            mockLocalStorage.getItem("time-tracker-data") || "[]",
+        );
         expect(savedData).toHaveLength(1);
     });
 
@@ -254,7 +269,9 @@ describe("Form Validation - Integration Tests", () => {
 
         // Should show error
         await waitFor(() => {
-            expect(screen.getByText("At least 3 characters needed")).toBeInTheDocument();
+            expect(
+                screen.getByText("At least 3 characters needed"),
+            ).toBeInTheDocument();
         });
 
         // Correct the input
@@ -263,7 +280,9 @@ describe("Form Validation - Integration Tests", () => {
         // Error should be cleared when field is valid
         await user.tab();
         await waitFor(() => {
-            expect(screen.queryByText("At least 3 characters needed")).not.toBeInTheDocument();
+            expect(
+                screen.queryByText("At least 3 characters needed"),
+            ).not.toBeInTheDocument();
         });
     });
 });

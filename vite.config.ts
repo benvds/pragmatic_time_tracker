@@ -15,5 +15,14 @@ export default defineConfig({
         // you might want to disable it, if you don't have tests that rely on CSS
         // since parsing CSS is slow
         // css: true,
+        exclude: [
+            "**/node_modules/**",
+            "**/dist/**",
+            "**/cypress/**",
+            "**/.{idea,git,cache,output,temp}/**",
+            "**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*",
+            "**/e2e/**",
+            "**/*.e2e.*",
+        ],
     },
 });

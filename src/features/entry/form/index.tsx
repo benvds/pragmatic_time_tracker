@@ -249,6 +249,7 @@ Duration: ${Math.floor(savedEntry.duration / 60)}h ${savedEntry.duration % 60}m`
                 <input
                     type="date"
                     name="date"
+                    id="date"
                     tabIndex={0}
                     defaultValue={today}
                     onBlur={setField("date")}
@@ -260,6 +261,7 @@ Duration: ${Math.floor(savedEntry.duration / 60)}h ${savedEntry.duration % 60}m`
                 <input
                     type="text"
                     name="description"
+                    id="description"
                     tabIndex={0}
                     onBlur={setField("description")}
                 />
@@ -270,6 +272,7 @@ Duration: ${Math.floor(savedEntry.duration / 60)}h ${savedEntry.duration % 60}m`
                 <input
                     type="text"
                     name="project"
+                    id="project"
                     tabIndex={0}
                     onBlur={setField("project")}
                 />
@@ -283,6 +286,7 @@ Duration: ${Math.floor(savedEntry.duration / 60)}h ${savedEntry.duration % 60}m`
                             className={styles.doubleDigits}
                             type="number"
                             name="hh"
+                            id="hh"
                             tabIndex={0}
                             min={hhMin}
                             max={hhMax}
@@ -295,6 +299,7 @@ Duration: ${Math.floor(savedEntry.duration / 60)}h ${savedEntry.duration % 60}m`
                             className={styles.doubleDigits}
                             type="number"
                             name="mm"
+                            id="mm"
                             tabIndex={0}
                             min={mmMin}
                             max={mmMax}
