@@ -1,29 +1,39 @@
-type InputValue = HTMLInputElement["value"];
+// Generic record for either for field parsers or field states
+export type FormRecord = Record<string, unknown>;
 
-export type FormSchema = Record<string, unknown>;
+export type OkFieldState<T> = { value: T; error?: never };
 
-export type OkField<T> = { value: T; error?: never };
-export type ErrorField<T> = { value: T | undefined; error: string };
-export type Field<T> = ErrorField<T> | OkField<T>;
-export type FieldParser<T> = (inputValue: InputValue) => Field<T>;
-export type Fields<T extends FormSchema = FormSchema> = {
-    [K in keyof T]: Field<T[K]>;
-};
-export type OkFields<T extends FormSchema = FormSchema> = {
-    [K in keyof T]: OkField<T[K]>;
+export type ErrorFieldState<T> = { value: T | undefined; error: string };
+
+export type FieldState<T> = ErrorFieldState<T> | OkFieldState<T>;
+
+export type FieldStates<T extends FormRecord = FormRecord> = {
+    [K in keyof T]: FieldState<T[K]>;
 };
 
-export type FieldParsers<T extends FormSchema = FormSchema> = {
+export type OkFieldStates<T extends FormRecord = FormRecord> = {
+    [K in keyof T]: OkFieldState<T[K]>;
+};
+
+export type FieldParser<T> = (
+    inputValue: HTMLInputElement["value"],
+) => FieldState<T>;
+
+export type FieldParsers<T extends FormRecord = FormRecord> = {
     [K in keyof T]: FieldParser<T[K]>;
 };
 
-export const isErrorField = <T>(field: Field<T>): field is ErrorField<T> =>
-    "error" in field;
+export const isErrorFieldSate = <T>(
+    field: FieldState<T>,
+): field is ErrorFieldState<T> => "error" in field;
 
-export const isOkField = <T>(field: Field<T>): field is OkField<T> =>
-    !isErrorField(field);
+export const isOkFieldState = <T>(
+    field: FieldState<T>,
+): field is OkFieldState<T> => !isErrorFieldSate(field);
 
-export const everyFieldOk = <T extends FormSchema>(
-    fields: Fields<T>,
-): fields is OkFields<T> =>
-    Object.values(fields).every((field) => isOkField(field as Field<unknown>));
+export const everyOkFieldStates = <T extends FormRecord>(
+    fields: FieldStates<T>,
+): fields is OkFieldStates<T> =>
+    Object.values(fields).every((field) =>
+        isOkFieldState(field as FieldState<unknown>),
+    );

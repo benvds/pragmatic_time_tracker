@@ -5,11 +5,11 @@ import {
     useState,
 } from "react";
 
-import type { Fields, FieldParsers, FormSchema } from "./util";
+import type { FieldStates, FieldParsers, FormRecord } from "./util";
 
-type PartialFormFields<T extends FormSchema> = Partial<Fields<T>>;
+type PartialFormFields<T extends FormRecord> = Partial<FieldStates<T>>;
 
-export const useForm = <T extends FormSchema>({
+export const useForm = <T extends FormRecord>({
     initial = {},
     parsers,
 }: {
@@ -31,7 +31,7 @@ export const useForm = <T extends FormSchema>({
 type Setter<T> = (value: T | ((prevState: T) => T)) => void;
 
 const setFieldsForFormEvent =
-    <T extends FormSchema>({
+    <T extends FormRecord>({
         parsers,
         setFields,
     }: {
@@ -40,7 +40,7 @@ const setFieldsForFormEvent =
     }) =>
     (evt: FormEvent<HTMLFormElement>) => {
         const formData = new FormData(evt.currentTarget);
-        const result = {} as Fields<T>;
+        const result = {} as FieldStates<T>;
 
         for (const key in parsers) {
             if (Object.prototype.hasOwnProperty.call(parsers, key)) {
@@ -56,7 +56,7 @@ const setFieldsForFormEvent =
     };
 
 const setFieldForInputEvent =
-    <T extends FormSchema>({
+    <T extends FormRecord>({
         parsers,
         setFields,
     }: {
