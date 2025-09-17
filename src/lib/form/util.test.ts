@@ -9,7 +9,7 @@ import {
     type FieldParsers,
     isErrorFieldSate,
     isOkFieldState,
-    everyOkFieldStates,
+    everyFieldStateOk,
 } from "./util";
 
 describe("util", () => {
@@ -79,7 +79,7 @@ describe("util", () => {
                 age: { value: 25 },
             };
 
-            expect(everyOkFieldStates(fields)).toBe(true);
+            expect(everyFieldStateOk(fields)).toBe(true);
         });
 
         it("should return false when any field has an error", () => {
@@ -88,7 +88,7 @@ describe("util", () => {
                 age: { value: undefined, error: "Required" },
             };
 
-            expect(everyOkFieldStates(fields)).toBe(false);
+            expect(everyFieldStateOk(fields)).toBe(false);
         });
 
         it("should return false when multiple fields have errors", () => {
@@ -97,13 +97,13 @@ describe("util", () => {
                 age: { value: undefined, error: "Must be a number" },
             };
 
-            expect(everyOkFieldStates(fields)).toBe(false);
+            expect(everyFieldStateOk(fields)).toBe(false);
         });
 
         it("should handle empty fields object", () => {
             const fields: FieldStates<{}> = {};
 
-            expect(everyOkFieldStates(fields)).toBe(true);
+            expect(everyFieldStateOk(fields)).toBe(true);
         });
 
         it("should correctly type narrow to OkFields when true", () => {
@@ -112,7 +112,7 @@ describe("util", () => {
                 age: { value: 25 },
             };
 
-            if (everyOkFieldStates(fields)) {
+            if (everyFieldStateOk(fields)) {
                 // Type should be narrowed to OkFields
                 expect(fields.name.value).toBe("John");
                 expect(fields.age.value).toBe(25);

@@ -31,7 +31,7 @@ export const isOkFieldState = <T>(
     field: FieldState<T>,
 ): field is OkFieldState<T> => !isErrorFieldSate(field);
 
-export const everyOkFieldStates = <T extends FormRecord>(
+export const everyFieldStateOk = <T extends FormRecord>(
     fields: FieldStates<T>,
 ): fields is OkFieldStates<T> =>
     Object.values(fields).every((field) =>
