@@ -5,17 +5,18 @@ import {
     useState,
 } from "react";
 
-import { type Field, type FieldParser } from "./util";
+import type { Fields, FieldParsers, FormSchema } from "./util";
 
-export const useForm = <T extends Record<string, unknown>>({
+type PartialFormFields<T extends FormSchema> = Partial<Fields<T>>;
+
+export const useForm = <T extends FormSchema>({
     initial = {},
     parsers,
 }: {
-    initial?: Partial<{ [K in keyof T]: Field<T[K]> }>;
-    parsers: { [K in keyof T]: FieldParser<T[K]> };
+    initial?: PartialFormFields<T>;
+    parsers: FieldParsers<T>;
 }) => {
-    const [fields, setFields] =
-        useState<Partial<{ [K in keyof T]: Field<T[K]> }>>(initial);
+    const [fields, setFields] = useState(initial);
 
     const reset = () => setFields(initial);
 
@@ -30,20 +31,17 @@ export const useForm = <T extends Record<string, unknown>>({
 type Setter<T> = (value: T | ((prevState: T) => T)) => void;
 
 const setFieldsForFormEvent =
-    <T extends Record<string, unknown>>({
+    <T extends FormSchema>({
         parsers,
         setFields,
     }: {
-        setFields: Setter<Partial<{ [K in keyof T]: Field<T[K]> }>>;
-        parsers: { [K in keyof T]: FieldParser<T[K]> };
+        setFields: Setter<PartialFormFields<T>>;
+        parsers: FieldParsers<T>;
     }) =>
-    (evt: FormEvent<HTMLFormElement>): { [K in keyof T]: Field<T[K]> } => {
+    (evt: FormEvent<HTMLFormElement>) => {
         const formData = new FormData(evt.currentTarget);
+        const result = {} as Fields<T>;
 
-        // Create a properly typed result object
-        const result = {} as { [K in keyof T]: Field<T[K]> };
-
-        // Process each field with its corresponding parser
         for (const key in parsers) {
             if (Object.prototype.hasOwnProperty.call(parsers, key)) {
                 const fieldKey = key as keyof T;
@@ -58,19 +56,19 @@ const setFieldsForFormEvent =
     };
 
 const setFieldForInputEvent =
-    <T extends Record<string, unknown>>({
+    <T extends FormSchema>({
         parsers,
         setFields,
     }: {
-        parsers: { [K in keyof T]: FieldParser<T[K]> };
-        setFields: Setter<Partial<{ [K in keyof T]: Field<T[K]> }>>;
+        parsers: FieldParsers<T>;
+        setFields: Setter<PartialFormFields<T>>;
     }) =>
     <K extends keyof T>(field: K) =>
     (evt: FocusEvent<HTMLInputElement> | ChangeEvent<HTMLInputElement>) => {
         const parser = parsers[field];
         const parsed = parser(evt.currentTarget.value);
 
-        setFields((prev = {} as Partial<{ [K in keyof T]: Field<T[K]> }>) => ({
+        setFields((prev = {}) => ({
             ...prev,
             [field]: parsed,
         }));
