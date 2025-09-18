@@ -2,13 +2,13 @@ import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 import { FieldError } from "./field-error";
-import type { FieldState, OkFieldState, ErrorFieldState } from "../util";
+import type { FieldState, FieldStateValid, FieldStateInvalid } from "../util";
 import styles from "./field-error.module.css";
 
 describe("FieldError", () => {
     describe("rendering", () => {
         it("should render error message when field has error", () => {
-            const errorField: ErrorFieldState<string> = {
+            const errorField: FieldStateInvalid<string> = {
                 value: "test",
                 error: "This field is required",
             };
@@ -21,7 +21,7 @@ describe("FieldError", () => {
         });
 
         it("should render error message when field has undefined value", () => {
-            const errorField: ErrorFieldState<string> = {
+            const errorField: FieldStateInvalid<string> = {
                 value: undefined,
                 error: "Invalid input",
             };
@@ -32,7 +32,7 @@ describe("FieldError", () => {
         });
 
         it("should not render when field is ok", () => {
-            const okField: OkFieldState<string> = {
+            const okField: FieldStateValid<string> = {
                 value: "test",
             };
 
@@ -56,7 +56,7 @@ describe("FieldError", () => {
 
     describe("styling", () => {
         it("should apply correct CSS class", () => {
-            const errorField: ErrorFieldState<string> = {
+            const errorField: FieldStateInvalid<string> = {
                 value: "test",
                 error: "Error message",
             };
@@ -70,7 +70,7 @@ describe("FieldError", () => {
 
     describe("different field types", () => {
         it("should work with string field errors", () => {
-            const field: ErrorFieldState<string> = {
+            const field: FieldStateInvalid<string> = {
                 value: "invalid",
                 error: "String validation failed",
             };
@@ -83,7 +83,7 @@ describe("FieldError", () => {
         });
 
         it("should work with number field errors", () => {
-            const field: ErrorFieldState<number> = {
+            const field: FieldStateInvalid<number> = {
                 value: undefined,
                 error: "Must be a valid number",
             };
@@ -96,7 +96,7 @@ describe("FieldError", () => {
         });
 
         it("should work with boolean field errors", () => {
-            const field: ErrorFieldState<boolean> = {
+            const field: FieldStateInvalid<boolean> = {
                 value: false,
                 error: "Must accept terms",
             };
@@ -107,7 +107,7 @@ describe("FieldError", () => {
         });
 
         it("should work with object field errors", () => {
-            const field: ErrorFieldState<{ name: string }> = {
+            const field: FieldStateInvalid<{ name: string }> = {
                 value: undefined,
                 error: "Object is required",
             };
@@ -118,7 +118,7 @@ describe("FieldError", () => {
         });
 
         it("should work with array field errors", () => {
-            const field: ErrorFieldState<string[]> = {
+            const field: FieldStateInvalid<string[]> = {
                 value: [],
                 error: "At least one item required",
             };
@@ -133,7 +133,7 @@ describe("FieldError", () => {
 
     describe("edge cases", () => {
         it("should handle empty error message", () => {
-            const field: ErrorFieldState<string> = {
+            const field: FieldStateInvalid<string> = {
                 value: "test",
                 error: "",
             };
@@ -148,7 +148,7 @@ describe("FieldError", () => {
         });
 
         it("should handle multiline error messages", () => {
-            const field: ErrorFieldState<string> = {
+            const field: FieldStateInvalid<string> = {
                 value: "test",
                 error: "Line 1\nLine 2\nLine 3",
             };
@@ -162,7 +162,7 @@ describe("FieldError", () => {
         });
 
         it("should handle error messages with special characters", () => {
-            const field: ErrorFieldState<string> = {
+            const field: FieldStateInvalid<string> = {
                 value: "test",
                 error: "Error with <>&\"' characters",
             };
@@ -176,7 +176,7 @@ describe("FieldError", () => {
 
         it("should handle very long error messages", () => {
             const longMessage = "A".repeat(1000);
-            const field: ErrorFieldState<string> = {
+            const field: FieldStateInvalid<string> = {
                 value: "test",
                 error: longMessage,
             };

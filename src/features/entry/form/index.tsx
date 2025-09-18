@@ -2,7 +2,7 @@ import { type FormEventHandler } from "react";
 
 import { Button } from "@/components/button";
 import {
-    everyFieldStateOk,
+    everyFieldStateValid,
     FieldError,
     type FieldParser,
     useForm,
@@ -86,7 +86,7 @@ export const EntryForm = () => {
 
         const parsed = setFields(evt);
 
-        if (everyFieldStateOk(parsed)) {
+        if (everyFieldStateValid(parsed)) {
             const entry = {
                 description: parsed.description.value,
                 project: parsed.project.value,

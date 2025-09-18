@@ -1,18 +1,18 @@
 // Generic record for either for field parsers or field states
 export type FormRecord = Record<string, unknown>;
 
-export type OkFieldState<T> = { value: T; error?: never };
+export type FieldStateValid<T> = { value: T; error?: never };
 
-export type ErrorFieldState<T> = { value: T | undefined; error: string };
+export type FieldStateInvalid<T> = { value: T | undefined; error: string };
 
-export type FieldState<T> = ErrorFieldState<T> | OkFieldState<T>;
+export type FieldState<T> = FieldStateInvalid<T> | FieldStateValid<T>;
 
 export type FieldStates<T extends FormRecord = FormRecord> = {
     [K in keyof T]: FieldState<T[K]>;
 };
 
-export type OkFieldStates<T extends FormRecord = FormRecord> = {
-    [K in keyof T]: OkFieldState<T[K]>;
+export type FieldStatesValid<T extends FormRecord = FormRecord> = {
+    [K in keyof T]: FieldStateValid<T[K]>;
 };
 
 export type FieldParser<T> = (
@@ -23,17 +23,31 @@ export type FieldParsers<T extends FormRecord = FormRecord> = {
     [K in keyof T]: FieldParser<T[K]>;
 };
 
-export const isErrorFieldSate = <T>(
+/**
+ * Checks if a field state is in an invalid state.
+ *
+ * @param field - FieldState<T>
+ *
+ * @returns true when the field is in an invalid state
+ */
+export const isFieldStateInvalid = <T>(
     field: FieldState<T>,
-): field is ErrorFieldState<T> => "error" in field;
+): field is FieldStateInvalid<T> => "error" in field;
 
-export const isOkFieldState = <T>(
+/**
+ * Checks if a field state is in a valid state.
+ *
+ * @param field - FieldState<T>
+ *
+ * @returns true when the field is in a valid state
+ */
+export const isFieldStateValid = <T>(
     field: FieldState<T>,
-): field is OkFieldState<T> => !isErrorFieldSate(field);
+): field is FieldStateValid<T> => !isFieldStateInvalid(field);
 
-export const everyFieldStateOk = <T extends FormRecord>(
+export const everyFieldStateValid = <T extends FormRecord>(
     fields: FieldStates<T>,
-): fields is OkFieldStates<T> =>
+): fields is FieldStatesValid<T> =>
     Object.values(fields).every((field) =>
-        isOkFieldState(field as FieldState<unknown>),
+        isFieldStateValid(field as FieldState<unknown>),
     );

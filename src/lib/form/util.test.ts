@@ -2,72 +2,72 @@ import { describe, it, expect } from "vitest";
 
 import {
     type FieldState,
-    type OkFieldState,
-    type ErrorFieldState,
+    type FieldStateValid,
+    type FieldStateInvalid,
     type FieldStates,
     type FieldParser,
     type FieldParsers,
-    isErrorFieldSate,
-    isOkFieldState,
-    everyFieldStateOk,
+    isFieldStateInvalid,
+    isFieldStateValid,
+    everyFieldStateValid,
 } from "./util";
 
 describe("util", () => {
     describe("type guards", () => {
         describe("isErrorField", () => {
             it("should return true for error fields", () => {
-                const errorField: ErrorFieldState<string> = {
+                const errorField: FieldStateInvalid<string> = {
                     value: "test",
                     error: "Something went wrong",
                 };
 
-                expect(isErrorFieldSate(errorField)).toBe(true);
+                expect(isFieldStateInvalid(errorField)).toBe(true);
             });
 
             it("should return false for ok fields", () => {
-                const okField: OkFieldState<string> = {
+                const okField: FieldStateValid<string> = {
                     value: "test",
                 };
 
-                expect(isErrorFieldSate(okField)).toBe(false);
+                expect(isFieldStateInvalid(okField)).toBe(false);
             });
 
             it("should handle undefined value in error field", () => {
-                const errorField: ErrorFieldState<string> = {
+                const errorField: FieldStateInvalid<string> = {
                     value: undefined,
                     error: "Required field",
                 };
 
-                expect(isErrorFieldSate(errorField)).toBe(true);
+                expect(isFieldStateInvalid(errorField)).toBe(true);
             });
         });
 
         describe("isOkField", () => {
             it("should return true for ok fields", () => {
-                const okField: OkFieldState<string> = {
+                const okField: FieldStateValid<string> = {
                     value: "test",
                 };
 
-                expect(isOkFieldState(okField)).toBe(true);
+                expect(isFieldStateValid(okField)).toBe(true);
             });
 
             it("should return false for error fields", () => {
-                const errorField: ErrorFieldState<string> = {
+                const errorField: FieldStateInvalid<string> = {
                     value: "test",
                     error: "Something went wrong",
                 };
 
-                expect(isOkFieldState(errorField)).toBe(false);
+                expect(isFieldStateValid(errorField)).toBe(false);
             });
 
             it("should handle ok fields with falsy values", () => {
-                const okFieldEmpty: OkFieldState<string> = { value: "" };
-                const okFieldZero: OkFieldState<number> = { value: 0 };
-                const okFieldFalse: OkFieldState<boolean> = { value: false };
+                const okFieldEmpty: FieldStateValid<string> = { value: "" };
+                const okFieldZero: FieldStateValid<number> = { value: 0 };
+                const okFieldFalse: FieldStateValid<boolean> = { value: false };
 
-                expect(isOkFieldState(okFieldEmpty)).toBe(true);
-                expect(isOkFieldState(okFieldZero)).toBe(true);
-                expect(isOkFieldState(okFieldFalse)).toBe(true);
+                expect(isFieldStateValid(okFieldEmpty)).toBe(true);
+                expect(isFieldStateValid(okFieldZero)).toBe(true);
+                expect(isFieldStateValid(okFieldFalse)).toBe(true);
             });
         });
     });
@@ -79,7 +79,7 @@ describe("util", () => {
                 age: { value: 25 },
             };
 
-            expect(everyFieldStateOk(fields)).toBe(true);
+            expect(everyFieldStateValid(fields)).toBe(true);
         });
 
         it("should return false when any field has an error", () => {
@@ -88,7 +88,7 @@ describe("util", () => {
                 age: { value: undefined, error: "Required" },
             };
 
-            expect(everyFieldStateOk(fields)).toBe(false);
+            expect(everyFieldStateValid(fields)).toBe(false);
         });
 
         it("should return false when multiple fields have errors", () => {
@@ -97,13 +97,13 @@ describe("util", () => {
                 age: { value: undefined, error: "Must be a number" },
             };
 
-            expect(everyFieldStateOk(fields)).toBe(false);
+            expect(everyFieldStateValid(fields)).toBe(false);
         });
 
         it("should handle empty fields object", () => {
             const fields: FieldStates<{}> = {};
 
-            expect(everyFieldStateOk(fields)).toBe(true);
+            expect(everyFieldStateValid(fields)).toBe(true);
         });
 
         it("should correctly type narrow to OkFields when true", () => {
@@ -112,7 +112,7 @@ describe("util", () => {
                 age: { value: 25 },
             };
 
-            if (everyFieldStateOk(fields)) {
+            if (everyFieldStateValid(fields)) {
                 // Type should be narrowed to OkFields
                 expect(fields.name.value).toBe("John");
                 expect(fields.age.value).toBe(25);
