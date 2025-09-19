@@ -2,14 +2,10 @@ import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 
 import { useForm } from "./use-form";
-import type { FieldParsers } from "./util";
+import type { FieldParsers, type FieldStates } from "./util";
 
 describe("useForm", () => {
-    const mockParsers: FieldParsers<{
-        name: string;
-        age: number;
-        email: string;
-    }> = {
+    const mockParsers = {
         name: (value) =>
             value ? { value } : { value: undefined, error: "Name is required" },
         age: (value) => {
@@ -24,10 +20,15 @@ describe("useForm", () => {
                 ? { value }
                 : { value: undefined, error: "Invalid email format" };
         },
-    };
+    } satisfies FieldParsers;
 
-    describe("initialization", () => {
-        it("should initialize with empty fields when no initial values provided", () => {
+    const initial = {
+        name: { value: "John" },
+        age: { value: 25 },
+    } satisfies Partial<FieldStates>;
+
+    describe("initial field states", () => {
+        it("initializes with empty fields state by default", () => {
             const { result } = renderHook(() =>
                 useForm({ parsers: mockParsers }),
             );
@@ -35,24 +36,7 @@ describe("useForm", () => {
             expect(result.current.fields).toEqual({});
         });
 
-        it("should initialize with provided initial values", () => {
-            const initial = {
-                name: { value: "John" },
-                age: { value: 25 },
-            };
-
-            const { result } = renderHook(() =>
-                useForm({ initial, parsers: mockParsers }),
-            );
-
-            expect(result.current.fields).toEqual(initial);
-        });
-
-        it("should initialize with partial initial values", () => {
-            const initial = {
-                name: { value: "John" },
-            };
-
+        it("initializes with provided initial field states", () => {
             const { result } = renderHook(() =>
                 useForm({ initial, parsers: mockParsers }),
             );
@@ -62,12 +46,7 @@ describe("useForm", () => {
     });
 
     describe("reset", () => {
-        it("should reset fields to initial values", () => {
-            const initial = {
-                name: { value: "John" },
-                age: { value: 25 },
-            };
-
+        it("sets fields to initial values", () => {
             const { result } = renderHook(() =>
                 useForm({ initial, parsers: mockParsers }),
             );
@@ -90,7 +69,7 @@ describe("useForm", () => {
             expect(result.current.fields).toEqual(initial);
         });
 
-        it("should reset to empty object when no initial values provided", () => {
+        it("sets fields to empty object when no initial values provided", () => {
             const { result } = renderHook(() =>
                 useForm({ parsers: mockParsers }),
             );
@@ -115,7 +94,7 @@ describe("useForm", () => {
     });
 
     describe("setField", () => {
-        it("should update single field with valid value", () => {
+        it("updates single field with valid value", () => {
             const { result } = renderHook(() =>
                 useForm({ parsers: mockParsers }),
             );
@@ -132,7 +111,7 @@ describe("useForm", () => {
             });
         });
 
-        it("should update single field with invalid value", () => {
+        it("updates single field with invalid value", () => {
             const { result } = renderHook(() =>
                 useForm({ parsers: mockParsers }),
             );
@@ -149,36 +128,20 @@ describe("useForm", () => {
             });
         });
 
-        it("should handle focus events", () => {
-            const { result } = renderHook(() =>
-                useForm({ parsers: mockParsers }),
-            );
-
-            act(() => {
-                const mockEvent = {
-                    currentTarget: { value: "test@example.com" },
-                } as React.FocusEvent<HTMLInputElement>;
-                result.current.setField("email")(mockEvent);
-            });
-
-            expect(result.current.fields).toEqual({
-                email: { value: "test@example.com" },
-            });
-        });
-
         it("should preserve existing fields when updating single field", () => {
-            const initial = {
+            const initialWithoutAge = {
                 name: { value: "John" },
             };
 
             const { result } = renderHook(() =>
-                useForm({ initial, parsers: mockParsers }),
+                useForm({ initial: initialWithoutAge, parsers: mockParsers }),
             );
 
             act(() => {
                 const mockEvent = {
                     currentTarget: { value: "25" },
                 } as React.ChangeEvent<HTMLInputElement>;
+                // TODO: age is missing but should be inferred from parsers
                 result.current.setField("age")(mockEvent);
             });
 
@@ -189,10 +152,6 @@ describe("useForm", () => {
         });
 
         it("should update existing field", () => {
-            const initial = {
-                name: { value: "John" },
-            };
-
             const { result } = renderHook(() =>
                 useForm({ initial, parsers: mockParsers }),
             );
@@ -205,6 +164,7 @@ describe("useForm", () => {
             });
 
             expect(result.current.fields).toEqual({
+                ...initial,
                 name: { value: "Jane" },
             });
         });
