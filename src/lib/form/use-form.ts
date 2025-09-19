@@ -5,9 +5,11 @@ import {
     useState,
 } from "react";
 
-import type { FieldStates, FieldParsers, FormRecord } from "./util";
-
-type PartialFormFields<T extends FormRecord> = Partial<FieldStates<T>>;
+import type {
+    FieldStates,
+    FieldParsers,
+    PartialFieldStatesFromParsers,
+} from "./util";
 
 type Setter<T> = (value: T | ((prevState: T) => T)) => void;
 
@@ -24,12 +26,12 @@ type Setter<T> = (value: T | ((prevState: T) => T)) => void;
  * const parsers = { email: parseEmail };
  * const { fields, reset, setField, setFields } = useForm({ parsers });
  */
-export const useForm = <T extends FormRecord>({
+export const useForm = <FP extends FieldParsers>({
     initial = {},
     parsers,
 }: {
-    initial?: PartialFormFields<T>;
-    parsers: FieldParsers<T>;
+    initial?: PartialFieldStatesFromParsers<FP>;
+    parsers: FP;
 }) => {
     const [fieldStates, setFieldStates] = useState(initial);
 
@@ -38,11 +40,11 @@ export const useForm = <T extends FormRecord>({
     return {
         fields: fieldStates,
         reset,
-        setField: setFieldForInputEvent<T>({
+        setField: setFieldForInputEvent<FP>({
             setFieldStates,
             parsers,
         }),
-        setFields: setFieldsForFormEvent<T>({
+        setFields: setFieldsForFormEvent<FP>({
             setFieldStates,
             parsers,
         }),
@@ -67,20 +69,20 @@ export const useForm = <T extends FormRecord>({
  * }
  */
 const setFieldsForFormEvent =
-    <T extends FormRecord>({
+    <FP extends FieldParsers>({
         parsers,
         setFieldStates,
     }: {
-        parsers: FieldParsers<T>;
-        setFieldStates: Setter<PartialFormFields<T>>;
+        parsers: FP;
+        setFieldStates: Setter<PartialFieldStatesFromParsers<FP>>;
     }) =>
     (evt: FormEvent<HTMLFormElement>) => {
         const formData = new FormData(evt.currentTarget);
-        const result = {} as FieldStates<T>;
+        const result = {} as PartialFieldStatesFromParsers<FP>;
 
         for (const key in parsers) {
             if (Object.prototype.hasOwnProperty.call(parsers, key)) {
-                const fieldKey = key as keyof T;
+                const fieldKey = key as keyof FP;
                 const parser = parsers[fieldKey];
                 result[fieldKey] = parser(formData.get(key) as string);
             }
@@ -109,14 +111,14 @@ const setFieldsForFormEvent =
  * />);
  */
 const setFieldForInputEvent =
-    <T extends FormRecord>({
+    <FP extends FieldParsers>({
         parsers,
         setFieldStates,
     }: {
-        parsers: FieldParsers<T>;
-        setFieldStates: Setter<PartialFormFields<T>>;
+        parsers: FP;
+        setFieldStates: Setter<PartialFieldStatesFromParsers<FP>>;
     }) =>
-    <K extends keyof T>(field: K) =>
+    <K extends keyof FP>(field: K) =>
     (evt: FocusEvent<HTMLInputElement> | ChangeEvent<HTMLInputElement>) => {
         const parser = parsers[field];
         const parsed = parser(evt.currentTarget.value);

@@ -23,6 +23,13 @@ export type FieldParsers<T extends FormRecord = FormRecord> = {
     [K in keyof T]: FieldParser<T[K]>;
 };
 
+// Partial Record of Fields with generic inferred from FieldParsers;
+export type PartialFieldStatesFromParsers<T extends FieldParsers> = Partial<
+    FieldStates<{
+        [K in keyof T]: T[K] extends (...args: any[]) => infer R ? R : never;
+    }>
+>;
+
 /**
  * Checks if a field state is in an invalid state.
  *

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 
 import { useForm } from "./use-form";
-import type { FieldParsers, type FieldStates } from "./util";
+import type { FieldParsers, PartialFieldStatesFromParsers } from "./util";
 
 describe("useForm", () => {
     const mockParsers = {
@@ -25,7 +25,7 @@ describe("useForm", () => {
     const initial = {
         name: { value: "John" },
         age: { value: 25 },
-    } satisfies Partial<FieldStates>;
+    } satisfies PartialFieldStatesFromParsers<typeof mockParsers>;
 
     describe("initial field states", () => {
         it("initializes with empty fields state by default", () => {
