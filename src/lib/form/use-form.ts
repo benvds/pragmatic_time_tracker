@@ -5,11 +5,7 @@ import {
     useState,
 } from "react";
 
-import type {
-    FieldStates,
-    FieldParsers,
-    PartialFieldStatesFromParsers,
-} from "./util";
+import type { FieldParsers, PartialFieldStatesFromParsers } from "./util";
 
 type Setter<T> = (value: T | ((prevState: T) => T)) => void;
 
@@ -84,7 +80,10 @@ const setFieldsForFormEvent =
             if (Object.prototype.hasOwnProperty.call(parsers, key)) {
                 const fieldKey = key as keyof FP;
                 const parser = parsers[fieldKey];
-                result[fieldKey] = parser(formData.get(key) as string);
+
+                result[fieldKey] = parser(
+                    formData.get(fieldKey as string) as string | null,
+                ) as PartialFieldStatesFromParsers<FP>[keyof FP];
             }
         }
 

@@ -16,7 +16,7 @@ export type FieldStatesValid<T extends FormRecord = FormRecord> = {
 };
 
 export type FieldParser<T> = (
-    inputValue: HTMLInputElement["value"],
+    inputValue: HTMLInputElement["value"] | null,
 ) => FieldState<T>;
 
 export type FieldParsers<T extends FormRecord = FormRecord> = {
@@ -26,7 +26,7 @@ export type FieldParsers<T extends FormRecord = FormRecord> = {
 // Partial Record of Fields with generic inferred from FieldParsers;
 export type PartialFieldStatesFromParsers<T extends FieldParsers> = Partial<
     FieldStates<{
-        [K in keyof T]: T[K] extends (...args: any[]) => infer R ? R : never;
+        [K in keyof T]: T[K] extends FieldParser<infer R> ? R : never;
     }>
 >;
 
