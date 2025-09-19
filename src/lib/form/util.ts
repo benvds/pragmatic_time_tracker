@@ -45,6 +45,13 @@ export const isFieldStateValid = <T>(
     field: FieldState<T>,
 ): field is FieldStateValid<T> => !isFieldStateInvalid(field);
 
+/**
+ * Checks if all field states are in a valid state or fields is empty.
+ *
+ * @param fields - FieldStates<T>
+ *
+ * @returns true when all fields are in a valid state or fields is empty
+ */
 export const everyFieldStateValid = <T extends FormRecord>(
     fields: FieldStates<T>,
 ): fields is FieldStatesValid<T> =>
