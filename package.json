@@ -10,7 +10,7 @@
         "lint:fix": "oxlint ./src --ignore-path ./.gitignore --fix",
         "lint:format": "prettier --log-level warn --write \"./**/*.{js,jsx,ts,tsx,html,css,md,json}\" ",
         "lint": "pnpm lint:format && pnpm lint:fix ",
-        "typecheck": "tsc --noEmit",
+        "typecheck": "tsc --project tsconfig.app.json --noEmit",
         "test": "vitest",
         "test:cov": "vitest run --coverage",
         "test:ui": "vitest --ui"

@@ -88,6 +88,7 @@ export const EntryForm = () => {
 
         if (everyFieldStateValid(parsed)) {
             const entry = {
+                // TODO: this is always partial now...
                 description: parsed.description.value,
                 project: parsed.project.value,
                 duration: parsed.hh.value * 60 + parsed.mm.value,
