@@ -61,7 +61,7 @@ export const isFieldStateValid = <T>(
  */
 export const everyFieldStateValid = <T extends FormRecord>(
     fields: FieldStates<T>,
-): fields is FieldStatesValid<T> =>
+): fields is Required<FieldStatesValid<T>> =>
     Object.values(fields).every((field) =>
         isFieldStateValid(field as FieldState<unknown>),
     );

@@ -10,7 +10,8 @@ import type { FieldParsers, PartialFieldStatesFromParsers } from "./util";
 type Setter<T> = (value: T | ((prevState: T) => T)) => void;
 
 /**
- * Create a form state management hook.
+ * Create a form state management hook. Parser functions are used to parse the
+ * input values into FieldState objects, which possibly contain errors.
  *
  * @param initial - The initial form state.
  * @param parsers - The parsers for each field.
@@ -21,6 +22,17 @@ type Setter<T> = (value: T | ((prevState: T) => T)) => void;
  *
  * const parsers = { email: parseEmail };
  * const { fields, reset, setField, setFields } = useForm({ parsers });
+ *
+ * return (
+ *     <>
+ *         <input
+ *             type="email"
+ *             name="email"
+ *             onBlur={setField("email")}
+ *         />
+ *         <FieldError field={fields.email} />
+ *     </>
+ * );
  */
 export const useForm = <FP extends FieldParsers>({
     initial = {},

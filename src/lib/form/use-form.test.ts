@@ -16,7 +16,7 @@ describe("useForm", () => {
         },
         email: (value) => {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(value)
+            return emailRegex.test(value ?? "")
                 ? { value }
                 : { value: undefined, error: "Invalid email format" };
         },
