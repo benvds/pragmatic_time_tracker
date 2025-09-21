@@ -46,8 +46,9 @@ pnpm preview    # locally preview production build
 ## Formatting, linting and typechecking
 
 ```shell
-pnpm lint       # format then lint
-pnpm lint:format
-pnpm lint:fix   # lint code, fix when possible
-pnpm typecheck  # tsc --noEmit
+pnpm format:all # format all code
+pnpm lint       # lint the code
+pnpm lint:fix   # lint the code and fix whenever possible
+pnpm fix        # format then lint and fix whenever possible
+pnpm check      # check types, e.g.: tsc --noEmit
 ```
