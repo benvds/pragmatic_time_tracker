@@ -1,9 +1,5 @@
 # AGENTS.md
 
-## Core Principles
-
-- Prefer simplicity, clear boundaries, and consistency over cleverness.
-
 ### Do
 
 - use kebab-case for file names, e.g.: `my-component.tsx`
@@ -13,6 +9,10 @@
 - default to small components
 - use arrow functions
 - use named exports
+- check package.json for already installed dependencies
+- prefer simplicity, clear boundaries, and composition
+- for just a few requirements don't install a new dependency, prefer to use existing dependencies or write a small library module
+- when requiring dependencies use the preferred libraries listed below
 
 ### Don't
 
@@ -91,6 +91,17 @@ features
 
 - non domain specific logic: look at `src/lib/form`
 - domain specific logic: look at `src/features/entry`
+
+## Preferred libraries
+
+Prefer not to use external libraries for logic which can easily be implemented with native JavaScript.
+When enough logic is needed, consider using a library.
+
+- `clsx`: for conditional classnames with css modules for styling
+- `@tanstack/react-router`: for routing
+- `@tanstack/react-query`: for data fetching and caching
+- `react-hook-form`: for form validation and submission
+- `@tabler/icons-react`: for icons
 
 ## Components & Styling
 
