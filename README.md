@@ -19,7 +19,7 @@ compatibility with each other. Something that is not standard in the fast paced 
 ## Installation
 
 ```shell
-pnpm i
+pnpm install
 ```
 
 ## Development
@@ -31,9 +31,10 @@ pnpm dev        # run a dev server
 ## Test
 
 ```shell
-pnpm test       # run unit tests
-pnpm test:cov   # with coverage
-pnpm test:ui    # with an ui
+pnpm test                # run unit tests
+pnpm test file/path.ts   # run file unit tests
+pnpm test:cov            # with coverage
+pnpm test:ui             # with an ui
 ```
 
 ## Build
@@ -43,12 +44,13 @@ pnpm build      # build for production
 pnpm preview    # locally preview production build
 ```
 
-## Formatting, linting and typechecking
+## Formatting, linting and type checking
 
 ```shell
-pnpm format:all # format all code
-pnpm lint       # lint the code
-pnpm lint:fix   # lint the code and fix whenever possible
-pnpm fix        # format then lint and fix whenever possible
-pnpm check      # check types, e.g.: tsc --noEmit
+pnpm format file/path.ts # format file
+pnpm format:all          # format all files
+pnpm lint file/path.ts   # lint file and fix when possible
+pnpm lint:all            # lint all files and fix when possible
+pnpm fix                 # format and lint all
+pnpm check               # check types, e.g.: tsc --noEmit
 ```
