@@ -1,17 +1,9 @@
 import { type FormEventHandler } from "react";
+import { Button, Group, NumberInput, Stack, TextInput } from "@mantine/core";
 
-import { Button } from "@/components/button";
-import {
-    everyFieldStateValid,
-    FieldError,
-    type FieldParser,
-    useForm,
-} from "@/lib/form";
-
-import styles from "./index.module.css";
+import { everyFieldStateValid, type FieldParser, useForm } from "@/lib/form";
 
 const descriptionMinLength = 3;
-const projectMinLength = 2;
 const hhMin = 0;
 const hhMax = 24;
 const mmMin = 0;
@@ -24,19 +16,6 @@ const parseDescription: FieldParser<string> = (input) => {
         return {
             value: undefined,
             error: `At least ${descriptionMinLength} characters needed`,
-        };
-    } else {
-        return { value: input };
-    }
-};
-
-const parseProject: FieldParser<string> = (input) => {
-    if (input === null || input.length === 0) {
-        return { value: undefined, error: `Required` };
-    } else if (input.length < projectMinLength) {
-        return {
-            value: undefined,
-            error: `At least ${projectMinLength} characters needed`,
         };
     } else {
         return { value: input };
@@ -71,7 +50,6 @@ const parseMm: FieldParser<number> = (input) => {
 
 const fieldParsers = {
     description: parseDescription,
-    project: parseProject,
     hh: parseHh,
     mm: parseMm,
 };
@@ -89,7 +67,6 @@ export const EntryForm = () => {
         if (everyFieldStateValid(parsed)) {
             const entry = {
                 description: parsed.description.value,
-                project: parsed.project.value,
                 duration: parsed.hh.value * 60 + parsed.mm.value,
             };
 
@@ -98,67 +75,43 @@ export const EntryForm = () => {
     };
 
     return (
-        <form
-            className={styles.form}
-            onSubmit={handleSubmit}
-            onReset={reset}
-            noValidate
-        >
-            <div className={styles.formField}>
-                <label htmlFor="description">Description</label>
-                <input
-                    type="text"
+        <form onSubmit={handleSubmit} onReset={reset} noValidate>
+            <Stack gap="md">
+                <TextInput
+                    label="Description"
                     name="description"
-                    tabIndex={0}
                     onBlur={setField("description")}
+                    error={fields?.description?.error}
                 />
-                <FieldError field={fields.description} />
-            </div>
-            <div className={styles.formField}>
-                <label htmlFor="project">Project</label>
-                <input
-                    type="text"
-                    name="project"
-                    tabIndex={0}
-                    onBlur={setField("project")}
-                />
-                <FieldError field={fields.project} />
-            </div>
-            <div className={styles.formField}>
-                <label htmlFor="hh">Duration (hh:mm)</label>
-                <div className={styles.inputGroup}>
-                    <div>
-                        <input
-                            className={styles.doubleDigits}
-                            type="number"
-                            name="hh"
-                            tabIndex={0}
-                            min={hhMin}
-                            max={hhMax}
-                            onBlur={setField("hh")}
-                        />
-                        <FieldError field={fields.hh} />
-                    </div>
-                    <div>
-                        <input
-                            className={styles.doubleDigits}
-                            type="number"
-                            name="mm"
-                            tabIndex={0}
-                            min={mmMin}
-                            max={mmMax}
-                            onBlur={setField("mm")}
-                        />
-                        <FieldError field={fields.mm} />
-                    </div>
-                </div>
-            </div>
-            <div className={styles.formActions}>
-                <Button type="submit">Save</Button>
-                <Button variant="ghost" type="reset">
-                    Reset
-                </Button>
-            </div>
+
+                <Group gap="xs">
+                    <NumberInput
+                        label="Hours"
+                        name="hh"
+                        min={hhMin}
+                        max={hhMax}
+                        onBlur={setField("hh")}
+                        error={fields?.hh?.error}
+                        w={100}
+                    />
+                    <NumberInput
+                        label="Minutes"
+                        name="mm"
+                        min={mmMin}
+                        max={mmMax}
+                        onBlur={setField("mm")}
+                        error={fields?.mm?.error}
+                        w={100}
+                    />
+                </Group>
+
+                <Group>
+                    <Button type="submit">Save</Button>
+                    <Button variant="outline" type="reset">
+                        Reset
+                    </Button>
+                </Group>
+            </Stack>
         </form>
     );
 };

@@ -1,3 +1,4 @@
+import "@mantine/core/styles.css";
 import "./index.css";
 
 import { StrictMode } from "react";

@@ -3,9 +3,9 @@
 ### Do
 
 - use kebab-case for file names, e.g.: `my-component.tsx`
-- use css modules for styling, e.g.: `import styles from "./my-component.module.css ";`
+- use css modules for styling, e.g.: `import styles from "./field-error.module.css ";`
 - use css variables
-- use absolute paths for imports, e.g.: `import { Button } from "@/components/button";`
+- use absolute paths for imports, e.g.: `import { useForm } from "@/lib/form";`
 - default to small components
 - use arrow functions
 - use named exports
@@ -58,7 +58,6 @@ Apply the following strategy for project structure:
 - Stay consistent
 - Limit the number of props a component is accepting as input
 - Abstract shared or general components and logic into a components or lib modules
-
 
 In general use the follow structure:
 

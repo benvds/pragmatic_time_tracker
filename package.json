@@ -18,6 +18,9 @@
         "test:ui": "vitest --ui"
     },
     "dependencies": {
+        "@mantine/core": "^8.3.1",
+        "@mantine/form": "^8.3.1",
+        "@mantine/hooks": "^8.3.1",
         "react": "^19.1.1",
         "react-dom": "^19.1.1"
     },
