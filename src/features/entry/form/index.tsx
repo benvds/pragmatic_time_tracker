@@ -1,7 +1,5 @@
-import { type FormEventHandler } from "react";
 import { Button, Group, NumberInput, Stack, TextInput } from "@mantine/core";
-
-import { everyFieldStateValid, type FieldParser, useForm } from "@/lib/form";
+import { useForm } from "@mantine/form";
 
 const descriptionMinLength = 3;
 const hhMin = 0;
@@ -9,98 +7,72 @@ const hhMax = 24;
 const mmMin = 0;
 const mmMax = 59;
 
-const parseDescription: FieldParser<string> = (input) => {
-    if (input === null || input.length === 0) {
-        return { value: undefined, error: `Required` };
-    } else if (input.length < descriptionMinLength) {
-        return {
-            value: undefined,
-            error: `At least ${descriptionMinLength} characters needed`,
-        };
-    } else {
-        return { value: input };
-    }
-};
-
-const parseHh: FieldParser<number> = (input) => {
-    const parsed = Number.parseInt(input ?? "");
-
-    if (Number.isNaN(parsed) || parsed < hhMin || parsed > hhMax) {
-        return {
-            value: undefined,
-            error: `Should be a number between ${hhMin} and ${hhMax}.`,
-        };
-    } else {
-        return { value: parsed };
-    }
-};
-
-const parseMm: FieldParser<number> = (input) => {
-    const parsed = Number.parseInt(input ?? "");
-
-    if (Number.isNaN(parsed) || parsed < mmMin || parsed > mmMax) {
-        return {
-            value: undefined,
-            error: `Should be a number between ${mmMin} and ${mmMax}.`,
-        };
-    } else {
-        return { value: parsed };
-    }
-};
-
-const fieldParsers = {
-    description: parseDescription,
-    hh: parseHh,
-    mm: parseMm,
-};
-
 export const EntryForm = () => {
-    const { fields, reset, setField, setFields } = useForm({
-        parsers: fieldParsers,
+    const form = useForm({
+        mode: "uncontrolled",
+        initialValues: {
+            description: "",
+            hh: 0,
+            mm: 0,
+        },
+        validate: {
+            description: (value) => {
+                if (!value || value.length === 0) {
+                    return "Required";
+                }
+                if (value.length < descriptionMinLength) {
+                    return `At least ${descriptionMinLength} characters needed`;
+                }
+                return null;
+            },
+            hh: (value) => {
+                if (value < hhMin || value > hhMax) {
+                    return `Should be a number between ${hhMin} and ${hhMax}.`;
+                }
+                return null;
+            },
+            mm: (value) => {
+                if (value < mmMin || value > mmMax) {
+                    return `Should be a number between ${mmMin} and ${mmMax}.`;
+                }
+                return null;
+            },
+        },
     });
 
-    const handleSubmit: FormEventHandler<HTMLFormElement> = (evt) => {
-        evt.preventDefault();
+    const handleSubmit = form.onSubmit((values) => {
+        const entry = {
+            description: values.description,
+            duration: values.hh * 60 + values.mm,
+        };
 
-        const parsed = setFields(evt);
-
-        if (everyFieldStateValid(parsed)) {
-            const entry = {
-                description: parsed.description.value,
-                duration: parsed.hh.value * 60 + parsed.mm.value,
-            };
-
-            console.debug("entry", entry);
-        }
-    };
+        console.debug("entry", entry);
+    });
 
     return (
-        <form onSubmit={handleSubmit} onReset={reset} noValidate>
+        <form onSubmit={handleSubmit} onReset={form.reset} noValidate>
             <Stack gap="md">
                 <TextInput
                     label="Description"
-                    name="description"
-                    onBlur={setField("description")}
-                    error={fields?.description?.error}
+                    key={form.key("description")}
+                    {...form.getInputProps("description")}
                 />
 
                 <Group gap="xs">
                     <NumberInput
                         label="Hours"
-                        name="hh"
                         min={hhMin}
                         max={hhMax}
-                        onBlur={setField("hh")}
-                        error={fields?.hh?.error}
+                        key={form.key("hh")}
+                        {...form.getInputProps("hh")}
                         w={100}
                     />
                     <NumberInput
                         label="Minutes"
-                        name="mm"
                         min={mmMin}
                         max={mmMax}
-                        onBlur={setField("mm")}
-                        error={fields?.mm?.error}
+                        key={form.key("mm")}
+                        {...form.getInputProps("mm")}
                         w={100}
                     />
                 </Group>

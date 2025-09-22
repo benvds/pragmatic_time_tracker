@@ -5,7 +5,7 @@
 - use kebab-case for file names, e.g.: `my-component.tsx`
 - use css modules for styling, e.g.: `import styles from "./field-error.module.css ";`
 - use css variables
-- use absolute paths for imports, e.g.: `import { useForm } from "@/lib/form";`
+- use absolute paths for imports, e.g.: `import { Button } from "@/components/button";`
 - default to small components
 - use arrow functions
 - use named exports
@@ -88,7 +88,7 @@ features
 
 ### Good and bad examples
 
-- non domain specific logic: look at `src/lib/form`
+- non domain specific logic: look at `src/lib` modules
 - domain specific logic: look at `src/features/entry`
 
 ## Preferred libraries
