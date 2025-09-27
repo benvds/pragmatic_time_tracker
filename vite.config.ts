@@ -11,7 +11,16 @@ export default defineConfig({
     test: {
         globals: true,
         environment: "happy-dom",
-        setupFiles: "./test/vitest.setup.ts",
+        setupFiles: "./vitest.setup.ts",
+        exclude: ["**/node_modules/**", "**/tests/**", "**/*.spec.ts"],
+        coverage: {
+            exclude: [
+                "**/node_modules/**",
+                "**/tests/**",
+                "**/*.spec.ts",
+                "playwright.config.ts",
+            ],
+        },
         // you might want to disable it, if you don't have tests that rely on CSS
         // since parsing CSS is slow
         // css: true,

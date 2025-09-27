@@ -1,5 +1,4 @@
 import { Container, Table, Title, Paper, Text } from "@mantine/core";
-import { EntryForm } from "./entry-form";
 import { generateWorkingDayEntries } from "./lib/generate-entries";
 import styles from "./logbook.module.css";
 
@@ -28,14 +27,6 @@ export const Logbook = () => {
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
-                        <Table.Tr className={styles.entryFormRow}>
-                            <Table.Td
-                                colSpan={3}
-                                className={styles.entryFormCell}
-                            >
-                                <EntryForm />
-                            </Table.Td>
-                        </Table.Tr>
                         {entries.map((entry, index) => (
                             <Table.Tr key={index} className={styles.entryRow}>
                                 <Table.Td className={styles.dateCell}>
