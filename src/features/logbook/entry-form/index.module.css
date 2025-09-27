@@ -1,0 +1,106 @@
+.form {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    width: 100%;
+}
+
+.dateColumn {
+    width: 120px;
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+    border-right: 1px solid var(--mantine-color-gray-2);
+}
+
+.durationColumn {
+    width: 100px;
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+    border-right: 1px solid var(--mantine-color-gray-2);
+}
+
+.descriptionColumn {
+    flex: 1;
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+}
+
+.dateInput {
+    width: 100%;
+    font-size: var(--mantine-font-size-sm);
+    font-weight: 500;
+    color: var(--mantine-color-dark-6);
+    text-align: center;
+}
+
+.timeInputs {
+    justify-content: center;
+    align-items: center;
+}
+
+.hourInput,
+.minuteInput {
+    width: 30px;
+    text-align: center;
+}
+
+.hourInput input,
+.minuteInput input {
+    text-align: center;
+    font-size: var(--mantine-font-size-sm);
+    font-weight: 600;
+    color: var(--mantine-color-blue-7);
+    padding: var(--mantine-spacing-xs);
+    border-bottom: 1px solid var(--mantine-color-gray-3);
+    font-variant-numeric: tabular-nums;
+}
+
+.hourInput input:focus,
+.minuteInput input:focus {
+    border-bottom-color: var(--mantine-color-blue-5);
+}
+
+.timeSeparator {
+    font-size: var(--mantine-font-size-xs);
+    color: var(--mantine-color-gray-6);
+    font-weight: 500;
+}
+
+.descriptionInput {
+    flex: 1;
+}
+
+/*.descriptionInput input {
+    font-size: var(--mantine-font-size-sm);
+    color: var(--mantine-color-dark-6);
+    font-style: italic;
+    padding: var(--mantine-spacing-xs);
+    border-bottom: 1px solid var(--mantine-color-gray-3);
+}
+
+.descriptionInput input:focus {
+    border-bottom-color: var(--mantine-color-blue-5);
+    font-style: normal;
+}
+
+.saveButton,
+.resetButton {
+    font-size: var(--mantine-font-size-xs);
+    height: auto;
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+}
+
+.saveButton {
+    background: var(--mantine-color-blue-1);
+    border: 1px solid var(--mantine-color-blue-3);
+}
+
+.saveButton:hover {
+    background: var(--mantine-color-blue-2);
+}
+
+.resetButton {
+    background: var(--mantine-color-gray-1);
+    border: 1px solid var(--mantine-color-gray-3);
+}
+
+.resetButton:hover {
+    background: var(--mantine-color-gray-2);
+}*/
