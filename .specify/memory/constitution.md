@@ -16,18 +16,23 @@ Sync Impact Report:
 ## Core Principles
 
 ### I. Simplicity First
+
 Every feature starts with the simplest possible implementation. Complexity must be explicitly justified and documented. YAGNI (You Aren't Gonna Need It) principles are strictly enforced. Dependencies should be minimal and well-established. When in doubt, choose the straightforward solution over the clever one.
 
 ### II. Test-Driven Development
+
 TDD is mandatory for all new features. Tests must be written first, confirmed to fail, then implementation proceeds to make them pass. The Red-Green-Refactor cycle is strictly enforced. All code paths must have corresponding tests. No feature is complete without adequate test coverage.
 
 ### III. Component Composition
+
 Components must be small, pure, and composable. Prefer composition over inheritance. Co-locate components, styles, and tests. Maintain clear separation between presentational and container concerns. Limit component props to essential inputs only.
 
 ### IV. Code Quality Standards
+
 All code must pass formatting, linting, and type checking before commit. Use kebab-case for file names. Prefer absolute imports over relative paths. Use CSS modules and CSS variables for styling. No hard-coded values or colors. File-scoped checks are preferred over full project scans.
 
 ### V. Dependency Management
+
 New dependencies require explicit approval. Prefer using existing project dependencies or writing small utility modules over adding new packages. When dependencies are needed, use the project's preferred libraries. Check package.json before adding any dependency.
 
 ## Development Workflow
