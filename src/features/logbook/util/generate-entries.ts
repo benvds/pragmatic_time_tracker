@@ -29,7 +29,8 @@ const taskDescriptions = [
 
 function getRandomDuration(): string {
     const hours = Math.floor(Math.random() * 8) + 1; // 1-8 hours
-    const minutes = Math.random() < 0.7 ? Math.floor(Math.random() * 4) * 15 : 0; // 0, 15, 30, or 45 minutes
+    const minutes =
+        Math.random() < 0.7 ? Math.floor(Math.random() * 4) * 15 : 0; // 0, 15, 30, or 45 minutes
 
     if (hours === 0) {
         return `${minutes}m`;
@@ -46,7 +47,9 @@ function getRandomDescription(): string | undefined {
         return undefined;
     }
 
-    return taskDescriptions[Math.floor(Math.random() * taskDescriptions.length)];
+    return taskDescriptions[
+        Math.floor(Math.random() * taskDescriptions.length)
+    ];
 }
 
 function isWorkingDay(date: Date): boolean {
@@ -64,7 +67,12 @@ export function generateWorkingDayEntries(): LogEntry[] {
     const startDate = new Date(currentYear, currentMonth, 1);
 
     // Generate entries up to today (or end of month if we're past it)
-    const endDate = new Date(Math.min(today.getTime(), new Date(currentYear, currentMonth + 1, 0).getTime()));
+    const endDate = new Date(
+        Math.min(
+            today.getTime(),
+            new Date(currentYear, currentMonth + 1, 0).getTime(),
+        ),
+    );
 
     const currentDate = new Date(startDate);
 
@@ -73,9 +81,9 @@ export function generateWorkingDayEntries(): LogEntry[] {
             // Skip today (that's where the form will be)
             if (currentDate.toDateString() !== today.toDateString()) {
                 entries.push({
-                    date: currentDate.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric'
+                    date: currentDate.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
                     }),
                     duration: getRandomDuration(),
                     description: getRandomDescription(),

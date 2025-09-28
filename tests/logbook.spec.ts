@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Logbook", () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto("http://localhost:5174");
+        await page.goto(".");
     });
 
     test("displays the logbook title", async ({ page }) => {
@@ -170,7 +170,7 @@ test.describe("Logbook", () => {
 
     test("loads within reasonable time", async ({ page }) => {
         const startTime = Date.now();
-        await page.goto("http://localhost:5174");
+        await page.goto(".");
 
         // Wait for main content to be visible
         await expect(
