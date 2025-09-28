@@ -3,10 +3,10 @@ import { render, screen } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
 
 import { Logbook } from "./logbook";
-import * as generateEntriesModule from "./lib/generate-entries";
+import * as generateEntriesModule from "./util/generate-entries";
 
 // Mock the generate-entries module
-vi.mock("./lib/generate-entries");
+vi.mock("./util/generate-entries");
 
 const renderWithMantine = (component: React.ReactElement) => {
     return render(<MantineProvider>{component}</MantineProvider>);

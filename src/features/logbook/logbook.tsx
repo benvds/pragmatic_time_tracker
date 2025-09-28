@@ -1,5 +1,5 @@
 import { Container, Table, Title, Paper, Text } from "@mantine/core";
-import { generateWorkingDayEntries } from "./lib/generate-entries";
+import { generateWorkingDayEntries } from "./util/generate-entries";
 import styles from "./logbook.module.css";
 
 export const Logbook = () => {
