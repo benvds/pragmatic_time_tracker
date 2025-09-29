@@ -1,8 +1,8 @@
 <!--
 Sync Impact Report:
-- Version change: NEW → 1.0.0
-- Modified principles: N/A (initial constitution)
-- Added sections: All (initial constitution)
+- Version change: 1.0.0 → 1.1.0
+- Modified principles: N/A
+- Added sections: VI. Testing Strategy, VII. Security and Safety, VIII. User Experience Standards
 - Removed sections: N/A
 - Templates requiring updates:
   ✅ plan-template.md (Constitution Check section already references constitution file)
@@ -35,6 +35,14 @@ All code must pass formatting, linting, and type checking before commit. Use keb
 
 New dependencies require explicit approval. Prefer using existing project dependencies or writing small utility modules over adding new packages. When dependencies are needed, use the project's preferred libraries. Check package.json before adding any dependency.
 
+### VI. Testing Strategy
+
+Components MUST have comprehensive unit tests covering rendering, data display, edge cases, and user interactions. Critical user flows MUST have end-to-end tests verifying visual behavior and accessibility. External data generation MUST be mocked in unit tests for predictable testing. Mock strategies MUST isolate components from external dependencies while maintaining realistic test scenarios.
+
+### VII. User Experience Standards
+
+Empty states MUST provide meaningful displays when data is unavailable. Technical data MUST be presented in human-readable formats (duration formatting, date display). Semantic HTML structure and ARIA attributes MUST be implemented for accessibility. Data presentation MUST follow consistent patterns across the application.
+
 ## Development Workflow
 
 All development follows a structured feature-based approach using the .specify system. Features begin with specifications, proceed through planning phases, and follow TDD implementation. Each feature must have clear acceptance criteria and be broken down into discrete, testable tasks.
@@ -53,4 +61,4 @@ This constitution supersedes all other development practices and guidelines. All
 
 Amendments to this constitution require documentation of the change rationale, impact assessment, and migration plan for affected code. The AGENTS.md file provides runtime development guidance that complements these constitutional principles.
 
-**Version**: 1.0.0 | **Ratified**: 2025-09-27 | **Last Amended**: 2025-09-27
+**Version**: 1.1.0 | **Ratified**: 2025-09-27 | **Last Amended**: 2025-09-29
