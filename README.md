@@ -13,8 +13,10 @@ compatibility with each other. Something that is not standard in the fast paced 
 
 ## Requirements
 
-1. [Node.js](https://nodejs.org/).
-2. [Pnpm](https://pnpm.io/).
+1. [Mise-en-place](https://mise.jdx.dev/).
+2. [Python](https://www.python.org/).
+3. [Node.js](https://nodejs.org/).
+4. [Pnpm](https://pnpm.io/).
 
 ## Installation
 
