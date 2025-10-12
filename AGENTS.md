@@ -44,7 +44,7 @@ Allowed without prompt:
 
 Ask first:
 
-- package installs,
+- package installs
 - git push
 - deleting files, chmod
 - running full build or end to end suites
@@ -99,7 +99,7 @@ When enough logic is needed, consider using a library.
 - `clsx`: for conditional classnames with css modules for styling
 - `@tanstack/react-router`: for routing
 - `@tanstack/react-query`: for data fetching and caching
-- `react-hook-form`: for form validation and submission
+- `@tanstack/react-form`: for form validation and submission
 - `@tabler/icons-react`: for icons
 
 ## Components & Styling
