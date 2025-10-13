@@ -35,8 +35,10 @@ pnpm dev        # run a dev server
 ```shell
 pnpm test                # run unit tests
 pnpm test file/path.ts   # run file unit tests
-pnpm test:cov            # with coverage
-pnpm test:ui             # with an ui
+pnpm test:cov            # run unit tests with coverage
+pnpm test:ui             # run unit tests with an ui
+pnpm test:e2e            # run end-to-end tests
+pnpm test:e2e:ui         # run end-to-end tests with an ui
 ```
 
 ## Build
