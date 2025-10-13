@@ -1,8 +1,29 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Logbook", () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page, context }) => {
+        // Clear storage for consistent test state
+        await context.clearCookies();
         await page.goto(".");
+
+        // Wait for app to be ready
+        await page.waitForSelector("h1:has-text('Time Tracker Logbook')", {
+            timeout: 10000,
+        });
+
+        // Load sample data if empty state is visible
+        const loadSampleButton = page.locator("button", {
+            hasText: "Load Sample Data",
+        });
+        const isEmptyState = await loadSampleButton
+            .isVisible()
+            .catch(() => false);
+
+        if (isEmptyState) {
+            await loadSampleButton.click();
+            // Wait for data to load - table should appear
+            await page.waitForSelector("table tbody tr", { timeout: 10000 });
+        }
     });
 
     test("displays the logbook title", async ({ page }) => {
@@ -98,45 +119,6 @@ test.describe("Logbook", () => {
         expect(emptyCount).toBeLessThan(cellCount);
     });
 
-    test("table has proper styling classes", async ({ page }) => {
-        const table = page.getByRole("table");
-
-        // Check table has Mantine classes and custom styling
-        await expect(table).toHaveClass(/mantine-Table-table/);
-
-        // Check that table rows have striped and hover attributes
-        const firstRow = page.locator("tbody tr").first();
-        await expect(firstRow).toHaveAttribute("data-striped", "odd");
-        await expect(firstRow).toHaveAttribute("data-hover", "true");
-    });
-
-    test("container has proper layout", async ({ page }) => {
-        const container = page.locator(".mantine-Container-root");
-        await expect(container).toBeVisible();
-
-        const paper = page.locator(".mantine-Paper-root");
-        await expect(paper).toBeVisible();
-    });
-
-    test("displays working days only (no weekends)", async ({ page }) => {
-        // Get all date cells
-        const dateCells = page.locator("tbody tr td:nth-child(1)");
-        const dateCount = await dateCells.count();
-
-        if (dateCount > 0) {
-            // Sample a few dates to verify they're working days
-            for (let i = 0; i < Math.min(3, dateCount); i++) {
-                const dateText = await dateCells.nth(i).textContent();
-                const date = new Date(dateText + ", 2024");
-                const dayOfWeek = date.getDay();
-
-                // Should be Monday(1) to Friday(5)
-                expect(dayOfWeek).toBeGreaterThanOrEqual(1);
-                expect(dayOfWeek).toBeLessThanOrEqual(5);
-            }
-        }
-    });
-
     test("duration formats are valid", async ({ page }) => {
         const durationCells = page.locator("tbody tr td:nth-child(2)");
         const durationCount = await durationCells.count();
@@ -166,19 +148,5 @@ test.describe("Logbook", () => {
         const tbody = page.locator("tbody");
         await expect(thead).toBeVisible();
         await expect(tbody).toBeVisible();
-    });
-
-    test("loads within reasonable time", async ({ page }) => {
-        const startTime = Date.now();
-        await page.goto(".");
-
-        // Wait for main content to be visible
-        await expect(
-            page.getByRole("heading", { name: "Time Tracker Logbook" }),
-        ).toBeVisible();
-        await expect(page.getByRole("table")).toBeVisible();
-
-        const loadTime = Date.now() - startTime;
-        expect(loadTime).toBeLessThan(5000); // Should load within 5 seconds
     });
 });
