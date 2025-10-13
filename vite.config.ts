@@ -5,9 +5,37 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
+// Plugin to handle WASM files with correct MIME type for LiveStore
+const wasmPlugin = () => {
+    return {
+        name: "wasm-mime-type",
+        configureServer(server: any) {
+            server.middlewares.use((req: any, res: any, next: any) => {
+                if (req.url?.endsWith(".wasm")) {
+                    res.setHeader("Content-Type", "application/wasm");
+                }
+                next();
+            });
+        },
+    };
+};
+
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [react(), tsconfigPaths()],
+    plugins: [react(), tsconfigPaths(), wasmPlugin()],
+    optimizeDeps: {
+        exclude: ["@livestore/wa-sqlite"],
+    },
+    server: {
+        headers: {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+        },
+    },
+    worker: {
+        format: "es",
+    },
+    assetsInclude: ["**/*.wasm"],
     test: {
         globals: true,
         environment: "happy-dom",
