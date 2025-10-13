@@ -3,10 +3,23 @@ import { render, screen } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
 
 import { Logbook } from "./logbook";
-import * as generateEntriesModule from "./util/generate-entries";
 
-// Mock the generate-entries module
-vi.mock("./util/generate-entries");
+// Mock the storage hooks
+vi.mock("@/features/storage", () => ({
+    useEntries: vi.fn(),
+    seedOnboardingData: vi.fn(),
+}));
+
+// Mock the LiveStore hooks
+vi.mock("@livestore/react", () => ({
+    useStore: vi.fn(() => ({
+        store: {
+            commit: vi.fn(),
+        },
+    })),
+}));
+
+import { useEntries } from "@/features/storage";
 
 const renderWithMantine = (component: React.ReactElement) => {
     return render(<MantineProvider>{component}</MantineProvider>);
@@ -14,34 +27,40 @@ const renderWithMantine = (component: React.ReactElement) => {
 
 const mockEntries = [
     {
-        date: "Sep 26",
-        duration: "2h 30m",
+        id: "entry-1",
+        date: new Date("2025-09-26T09:00:00"),
+        minutes: 150, // 2h 30m
         description: "Code review and feedback",
+        deletedAt: null,
     },
     {
-        date: "Sep 25",
-        duration: "4h",
+        id: "entry-2",
+        date: new Date("2025-09-25T10:00:00"),
+        minutes: 240, // 4h
         description: "Feature development - user authentication",
+        deletedAt: null,
     },
     {
-        date: "Sep 24",
-        duration: "1h 30m",
-        description: undefined, // Test undefined description
+        id: "entry-3",
+        date: new Date("2025-09-24T11:00:00"),
+        minutes: 90, // 1h 30m
+        description: "", // Test empty description
+        deletedAt: null,
     },
     {
-        date: "Sep 23",
-        duration: "8h",
+        id: "entry-4",
+        date: new Date("2025-09-23T08:00:00"),
+        minutes: 480, // 8h
         description: "API endpoint implementation",
+        deletedAt: null,
     },
 ];
 
 describe("Logbook", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        // Mock the generateWorkingDayEntries function
-        vi.mocked(
-            generateEntriesModule.generateWorkingDayEntries,
-        ).mockReturnValue(mockEntries);
+        // Mock the useEntries hook
+        vi.mocked(useEntries).mockReturnValue(mockEntries);
     });
 
     it("renders the logbook title", () => {
@@ -67,7 +86,7 @@ describe("Logbook", () => {
         ).toBeInTheDocument();
     });
 
-    it("displays all entries from generateWorkingDayEntries", () => {
+    it("displays all entries from useEntries hook", () => {
         renderWithMantine(<Logbook />);
 
         // Check that all mock entries are displayed
@@ -96,10 +115,10 @@ describe("Logbook", () => {
         ).toBeInTheDocument();
     });
 
-    it("displays em dash for undefined descriptions", () => {
+    it("displays em dash for empty descriptions", () => {
         renderWithMantine(<Logbook />);
 
-        // The entry for Sep 24 has undefined description, should show em dash
+        // The entry for Sep 24 has empty description, should show em dash
         const rows = screen.getAllByRole("row");
         const sep24Row = rows.find((row) =>
             row.textContent?.includes("Sep 24"),
@@ -108,12 +127,10 @@ describe("Logbook", () => {
         expect(sep24Row?.textContent).toContain("—");
     });
 
-    it("calls generateWorkingDayEntries on render", () => {
+    it("calls useEntries hook on render", () => {
         renderWithMantine(<Logbook />);
 
-        expect(
-            generateEntriesModule.generateWorkingDayEntries,
-        ).toHaveBeenCalledOnce();
+        expect(useEntries).toHaveBeenCalledOnce();
     });
 
     it("renders correct number of data rows", () => {
@@ -130,26 +147,22 @@ describe("Logbook", () => {
     });
 
     it("handles empty entries array", () => {
-        vi.mocked(
-            generateEntriesModule.generateWorkingDayEntries,
-        ).mockReturnValue([]);
+        vi.mocked(useEntries).mockReturnValue([]);
 
         renderWithMantine(<Logbook />);
 
-        // Should still show headers
-        expect(
-            screen.getByRole("columnheader", { name: "Date" }),
-        ).toBeInTheDocument();
-        expect(
-            screen.getByRole("columnheader", { name: "Duration" }),
-        ).toBeInTheDocument();
-        expect(
-            screen.getByRole("columnheader", { name: "Description" }),
-        ).toBeInTheDocument();
+        // Should show empty state component instead of table
+        expect(screen.getByTestId("empty-state")).toBeInTheDocument();
+        expect(screen.getByText("No time entries yet")).toBeInTheDocument();
+        expect(screen.getByText("Start tracking your time! Your entries will appear here once you begin logging your work.")).toBeInTheDocument();
 
-        // Should only have header row
-        const allRows = screen.getAllByRole("row");
-        expect(allRows).toHaveLength(1); // Only header row
+        // Should show load sample data button
+        expect(screen.getByRole("button", { name: "Load Sample Data" })).toBeInTheDocument();
+
+        // Should NOT show table headers when empty
+        expect(screen.queryByRole("columnheader", { name: "Date" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("columnheader", { name: "Duration" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("columnheader", { name: "Description" })).not.toBeInTheDocument();
     });
 
     it("applies correct CSS classes to table elements", () => {
@@ -211,14 +224,14 @@ describe("Logbook", () => {
     it("handles large number of entries", () => {
         // Create a large mock dataset
         const largeEntries = Array.from({ length: 50 }, (_, i) => ({
-            date: `Sep ${i + 1}`,
-            duration: `${Math.floor(Math.random() * 8) + 1}h`,
+            id: `entry-${i + 1}`,
+            date: new Date(`2025-09-${(i % 30) + 1}T09:00:00`),
+            minutes: Math.floor(Math.random() * 480) + 60, // 1-8 hours
             description: `Task ${i + 1}`,
+            deletedAt: null,
         }));
 
-        vi.mocked(
-            generateEntriesModule.generateWorkingDayEntries,
-        ).mockReturnValue(largeEntries);
+        vi.mocked(useEntries).mockReturnValue(largeEntries);
 
         renderWithMantine(<Logbook />);
 
@@ -227,7 +240,7 @@ describe("Logbook", () => {
         expect(allRows).toHaveLength(51); // 1 header + 50 data rows
     });
 
-    it("preserves entry order from generateWorkingDayEntries", () => {
+    it("preserves entry order from useEntries hook", () => {
         renderWithMantine(<Logbook />);
 
         const rows = screen.getAllByRole("row");
@@ -243,20 +256,22 @@ describe("Logbook", () => {
     it("handles special characters in descriptions", () => {
         const entriesWithSpecialChars = [
             {
-                date: "Sep 26",
-                duration: "2h",
+                id: "special-1",
+                date: new Date("2025-09-26T09:00:00"),
+                minutes: 120,
                 description: "Fix bug: <script> injection & validation",
+                deletedAt: null,
             },
             {
-                date: "Sep 25",
-                duration: "1h",
+                id: "special-2",
+                date: new Date("2025-09-25T10:00:00"),
+                minutes: 60,
                 description: "Update documentation (API v2.0)",
+                deletedAt: null,
             },
         ];
 
-        vi.mocked(
-            generateEntriesModule.generateWorkingDayEntries,
-        ).mockReturnValue(entriesWithSpecialChars);
+        vi.mocked(useEntries).mockReturnValue(entriesWithSpecialChars);
 
         renderWithMantine(<Logbook />);
 

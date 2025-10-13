@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm check:*)",
+      "Bash(pnpm add:*)",
+      "Bash(if [ -d \"/Users/benvds/code/time_tracker/pragmatic_time_tracker/specs/001-local-first-storage/checklists\" ])",
+      "Bash(then echo \"exists\")",
+      "Bash(else echo \"none\")",
+      "Bash(fi)",
+      "Bash(git rev-parse:*)",
+      "Bash(pnpm format:*)",
+      "Bash(pnpm lint:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
