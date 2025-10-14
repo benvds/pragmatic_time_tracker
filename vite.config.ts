@@ -1,9 +1,11 @@
 /// <reference types="vite/client" />
 /// <reference types="vitest/config" />
+import { spawn } from "node:child_process";
 
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { livestoreDevtoolsPlugin } from "@livestore/devtools-vite";
 
 // Plugin to handle WASM files with correct MIME type for LiveStore
 const wasmPlugin = () => {
@@ -19,10 +21,52 @@ const wasmPlugin = () => {
         },
     };
 };
+const wranglerDevPlugin = () => {
+    return {
+        name: "wrangler-dev",
+        configureServer: async (server) => {
+            const wrangler = spawn(
+                "./node_modules/.bin/wrangler",
+                ["dev", "--port", "8787"],
+                {
+                    stdio: ["ignore", "inherit", "inherit"],
+                },
+            );
+
+            const shutdown = () => {
+                if (wrangler.killed === false) {
+                    wrangler.kill();
+                }
+                process.exit(0);
+            };
+
+            server.httpServer?.on("close", shutdown);
+            process.on("SIGTERM", shutdown);
+            process.on("SIGINT", shutdown);
+
+            wrangler.on("exit", (code) =>
+                console.error(`wrangler dev exited with code ${code}`),
+            );
+        },
+    };
+};
 
 // https://vitejs.dev/config/
-export default defineConfig({
-    plugins: [react(), tsconfigPaths(), wasmPlugin()],
+export default defineConfig(({ mode }) => ({
+    plugins: [
+        react(),
+        tsconfigPaths(),
+        wasmPlugin(),
+        livestoreDevtoolsPlugin({
+            schemaPath: "./src/features/storage/schema.ts",
+        }),
+        // wranglerDevPlugin(),
+    ],
+    define: {
+        // Enable debug mode for dev and test, disable for production
+        "import.meta.env.VITE_DEBUG":
+            mode === "development" || mode === "test" ? '"true"' : '"false"',
+    },
     optimizeDeps: {
         exclude: ["@livestore/wa-sqlite"],
     },
@@ -55,4 +99,4 @@ export default defineConfig({
             ],
         },
     },
-});
+}));

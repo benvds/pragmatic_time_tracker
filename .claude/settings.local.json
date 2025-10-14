@@ -18,7 +18,8 @@
       "mcp__playwright-test__planner_setup_page",
       "mcp__playwright-test__browser_navigate",
       "mcp__playwright-test__browser_close",
-      "mcp__playwright-test__browser_wait_for"
+      "mcp__playwright-test__browser_wait_for",
+      "Bash(pnpm build:test:*)"
     ],
     "deny": [],
     "ask": []

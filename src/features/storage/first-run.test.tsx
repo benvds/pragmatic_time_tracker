@@ -44,7 +44,7 @@ describe("First Run Experience", () => {
 
         it("shows empty state when no entries exist", () => {
             renderWithMantine(
-                <EmptyState onLoadSampleData={mockSeedOnboardingData} />,
+                <EmptyState  />,
             );
 
             // Should show empty state message
@@ -58,7 +58,7 @@ describe("First Run Experience", () => {
 
         it("offers sample data option for new users", () => {
             renderWithMantine(
-                <EmptyState onLoadSampleData={mockSeedOnboardingData} />,
+                <EmptyState  />,
             );
 
             // Should show option to load sample data
@@ -72,7 +72,7 @@ describe("First Run Experience", () => {
     describe("Empty State Component", () => {
         it("renders friendly message for new users", () => {
             renderWithMantine(
-                <EmptyState onLoadSampleData={mockSeedOnboardingData} />,
+                <EmptyState  />,
             );
 
             expect(
@@ -85,7 +85,7 @@ describe("First Run Experience", () => {
 
         it("has accessible button for loading sample data", () => {
             renderWithMantine(
-                <EmptyState onLoadSampleData={mockSeedOnboardingData} />,
+                <EmptyState  />,
             );
 
             const button = screen.getByRole("button", {
@@ -97,7 +97,7 @@ describe("First Run Experience", () => {
 
         it("calls onLoadSampleData when button is clicked", async () => {
             renderWithMantine(
-                <EmptyState onLoadSampleData={mockSeedOnboardingData} />,
+                <EmptyState  />,
             );
 
             const button = screen.getByRole("button", {
@@ -117,7 +117,7 @@ describe("First Run Experience", () => {
             );
 
             renderWithMantine(
-                <EmptyState onLoadSampleData={mockSeedOnboardingData} />,
+                <EmptyState  />,
             );
 
             const button = screen.getByRole("button", {
@@ -138,7 +138,7 @@ describe("First Run Experience", () => {
             );
 
             renderWithMantine(
-                <EmptyState onLoadSampleData={mockSeedOnboardingData} />,
+                <EmptyState  />,
             );
 
             const button = screen.getByRole("button", {
@@ -160,7 +160,7 @@ describe("First Run Experience", () => {
             );
 
             renderWithMantine(
-                <EmptyState onLoadSampleData={mockSeedOnboardingData} />,
+                <EmptyState  />,
             );
 
             const button = screen.getByRole("button", {
@@ -178,7 +178,7 @@ describe("First Run Experience", () => {
     describe("User Journey", () => {
         it("provides clear next steps for new users", () => {
             renderWithMantine(
-                <EmptyState onLoadSampleData={mockSeedOnboardingData} />,
+                <EmptyState  />,
             );
 
             // Should give clear guidance
@@ -194,7 +194,7 @@ describe("First Run Experience", () => {
 
         it("has appropriate styling for empty state", () => {
             renderWithMantine(
-                <EmptyState onLoadSampleData={mockSeedOnboardingData} />,
+                <EmptyState  />,
             );
 
             // Should use Paper component for consistent styling
@@ -208,7 +208,7 @@ describe("First Run Experience", () => {
 
         it("maintains consistent branding with the app", () => {
             renderWithMantine(
-                <EmptyState onLoadSampleData={mockSeedOnboardingData} />,
+                <EmptyState  />,
             );
 
             // Should use consistent Mantine components
@@ -227,7 +227,7 @@ describe("First Run Experience", () => {
     describe("Accessibility", () => {
         it("has proper heading structure for screen readers", () => {
             renderWithMantine(
-                <EmptyState onLoadSampleData={mockSeedOnboardingData} />,
+                <EmptyState  />,
             );
 
             // Should have a clear heading
@@ -238,7 +238,7 @@ describe("First Run Experience", () => {
 
         it("has descriptive button text", () => {
             renderWithMantine(
-                <EmptyState onLoadSampleData={mockSeedOnboardingData} />,
+                <EmptyState  />,
             );
 
             const button = screen.getByRole("button", {
@@ -249,7 +249,7 @@ describe("First Run Experience", () => {
 
         it("provides appropriate ARIA labels and descriptions", () => {
             renderWithMantine(
-                <EmptyState onLoadSampleData={mockSeedOnboardingData} />,
+                <EmptyState  />,
             );
 
             const button = screen.getByRole("button", {

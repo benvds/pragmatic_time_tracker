@@ -63,8 +63,12 @@ export async function clearTestData(store: Store): Promise<SeedResult> {
  * @returns Object with expected counts from test seed data
  */
 export function getTestDataCounts() {
-    const createdEvents = testSeedData.filter(event => event.type === "v1.EntryCreated");
-    const deletedEvents = testSeedData.filter(event => event.type === "v1.EntryDeleted");
+    const createdEvents = testSeedData.filter(
+        (event) => event.type === "v1.EntryCreated",
+    );
+    const deletedEvents = testSeedData.filter(
+        (event) => event.type === "v1.EntryDeleted",
+    );
 
     return {
         totalCreated: createdEvents.length,
@@ -80,10 +84,15 @@ export function getTestDataCounts() {
  * @returns Map of test entry IDs to their descriptions
  */
 export function getTestEntryMap() {
-    const createdEvents = testSeedData.filter(event => event.type === "v1.EntryCreated");
-    const entryMap = new Map<string, { minutes: number; description: string; date: Date }>();
+    const createdEvents = testSeedData.filter(
+        (event) => event.type === "v1.EntryCreated",
+    );
+    const entryMap = new Map<
+        string,
+        { minutes: number; description: string; date: Date }
+    >();
 
-    createdEvents.forEach(event => {
+    createdEvents.forEach((event) => {
         entryMap.set(event.data.id, {
             minutes: event.data.minutes,
             description: event.data.description,
@@ -100,15 +109,23 @@ export function getTestEntryMap() {
  * @returns Object with references to specific edge case entries
  */
 export function getEdgeCaseEntries() {
-    const createdEvents = testSeedData.filter(event => event.type === "v1.EntryCreated");
+    const createdEvents = testSeedData.filter(
+        (event) => event.type === "v1.EntryCreated",
+    );
 
     return {
-        minimalDuration: createdEvents.find(e => e.data.minutes === 1),
-        maximalDuration: createdEvents.find(e => e.data.minutes >= 1440),
-        emptyDescription: createdEvents.find(e => e.data.description === ""),
-        longDescription: createdEvents.find(e => e.data.description.length > 500),
-        weekendEntry: createdEvents.find(e => e.data.date.getDay() === 0 || e.data.date.getDay() === 6),
-        specialChars: createdEvents.find(e => e.data.description.includes("@#$%")),
+        minimalDuration: createdEvents.find((e) => e.data.minutes === 1),
+        maximalDuration: createdEvents.find((e) => e.data.minutes >= 1440),
+        emptyDescription: createdEvents.find((e) => e.data.description === ""),
+        longDescription: createdEvents.find(
+            (e) => e.data.description.length > 500,
+        ),
+        weekendEntry: createdEvents.find(
+            (e) => e.data.date.getDay() === 0 || e.data.date.getDay() === 6,
+        ),
+        specialChars: createdEvents.find((e) =>
+            e.data.description.includes("@#$%"),
+        ),
     };
 }
 

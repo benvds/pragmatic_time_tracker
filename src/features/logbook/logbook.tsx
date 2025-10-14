@@ -1,18 +1,11 @@
 import { Container, Table, Title, Paper, Text, Group } from "@mantine/core";
-import { useStore } from "@livestore/react";
-import { useEntries, seedOnboardingData } from "@/features/storage";
+import { useEntries } from "@/features/storage";
 import { OfflineIndicator } from "./components/offline-indicator";
 import { EmptyState } from "./components/empty-state";
 import styles from "./logbook.module.css";
 
 export const Logbook = () => {
-    const { store } = useStore();
     const entries = useEntries();
-
-    // Handle loading sample data for new users
-    const handleLoadSampleData = async () => {
-        await seedOnboardingData(store);
-    };
 
     // Format duration from minutes to display string
     const formatDuration = (minutes: number): string => {
@@ -47,7 +40,7 @@ export const Logbook = () => {
                 </Group>
 
                 {entries.length === 0 ? (
-                    <EmptyState onLoadSampleData={handleLoadSampleData} />
+                    <EmptyState />
                 ) : (
                     <Table striped highlightOnHover className={styles.table} data-testid="logbook-table">
                         <Table.Thead>

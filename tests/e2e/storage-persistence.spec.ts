@@ -1,15 +1,38 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Storage Persistence", () => {
-    test.beforeEach(async ({ page }) => {
-        // Start with clean state - clear browser storage
+    test.beforeEach(async ({ page, context }) => {
+        // Clear all storage to get clean state
+        await context.clearCookies();
         await page.goto("http://localhost:5173");
-        await page.evaluate(() => {
-            // Clear all local storage and indexedDB
+
+        // Clear all storage types including OPFS
+        await page.evaluate(async () => {
             localStorage.clear();
             sessionStorage.clear();
-            // Clear OPFS (if possible from browser context)
+
+            // Clear IndexedDB
+            const databases = (await indexedDB.databases?.()) || [];
+            for (const db of databases) {
+                if (db.name) {
+                    indexedDB.deleteDatabase(db.name);
+                }
+            }
+
+            // Clear OPFS
+            try {
+                const root = await navigator.storage.getDirectory();
+                // @ts-ignore
+                for await (const entry of root.values()) {
+                    await root.removeEntry(entry.name, { recursive: true });
+                }
+            } catch (e) {
+                console.log("OPFS clear not available:", e);
+            }
         });
+
+        await page.reload();
+        await page.waitForLoadState("networkidle");
     });
 
     test("persists time entry across page reloads", async ({ page }) => {
@@ -39,7 +62,9 @@ test.describe("Storage Persistence", () => {
 
         // For now, let's test that the logbook component renders correctly
         // In full implementation, this would test actual data persistence
-        await expect(page.locator("[data-testid='logbook-table']")).toBeVisible();
+        await expect(
+            page.locator("[data-testid='logbook-table']"),
+        ).toBeVisible();
 
         // Reload the page
         await page.reload();
@@ -53,7 +78,9 @@ test.describe("Storage Persistence", () => {
 
         // Should show empty state message when no entries exist
         await expect(page.locator("text=No time entries yet")).toBeVisible();
-        await expect(page.locator("text=Start tracking your time!")).toBeVisible();
+        await expect(
+            page.locator("text=Start tracking your time!"),
+        ).toBeVisible();
 
         // Table headers should still be visible
         await expect(page.locator("text=Date")).toBeVisible();
@@ -97,9 +124,10 @@ test.describe("Storage Persistence", () => {
         await page.waitForTimeout(2000); // Wait for initial load
 
         // Should not have critical JavaScript errors
-        const criticalErrors = errors.filter(error =>
-            !error.includes("favicon") && // Ignore favicon errors
-            !error.includes("livereload") // Ignore dev server errors
+        const criticalErrors = errors.filter(
+            (error) =>
+                !error.includes("favicon") && // Ignore favicon errors
+                !error.includes("livereload"), // Ignore dev server errors
         );
         expect(criticalErrors).toHaveLength(0);
     });

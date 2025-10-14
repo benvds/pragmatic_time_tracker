@@ -11,16 +11,25 @@ test.describe("Logbook", () => {
             timeout: 10000,
         });
 
-        // Load sample data if empty state is visible
-        const loadSampleButton = page.locator("button", {
-            hasText: "Load Sample Data",
-        });
-        const isEmptyState = await loadSampleButton
+        // Load sample data using debug overlay
+        // Check if table exists, if not load sample data
+        const tableExists = await page
+            .locator("table tbody tr")
+            .first()
             .isVisible()
             .catch(() => false);
 
-        if (isEmptyState) {
-            await loadSampleButton.click();
+        if (!tableExists) {
+            // Open debug overlay
+            await page
+                .locator('[aria-label="Open debug tools"]')
+                .click({ timeout: 5000 });
+
+            // Click "Load Sample Data" button in debug overlay
+            await page
+                .locator('button:has-text("Load Sample Data")')
+                .click({ timeout: 5000 });
+
             // Wait for data to load - table should appear
             await page.waitForSelector("table tbody tr", { timeout: 10000 });
         }

@@ -1,18 +1,40 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("First Run Experience", () => {
-    test.beforeEach(async ({ page }) => {
-        // Clear browser storage to simulate first run
+    test.beforeEach(async ({ page, context }) => {
+        // Clear all storage to simulate first run
+        await context.clearCookies();
         await page.goto("http://localhost:5173");
-        await page.evaluate(() => {
+
+        // Clear all storage types including OPFS
+        await page.evaluate(async () => {
+            // Clear localStorage and sessionStorage
             localStorage.clear();
             sessionStorage.clear();
-            // Clear OPFS if possible
-            if ('storage' in navigator && 'estimate' in navigator.storage) {
-                // This is a placeholder - actual OPFS clearing would be more complex
-                console.log('Clearing storage...');
+
+            // Clear IndexedDB
+            const databases = (await indexedDB.databases?.()) || [];
+            for (const db of databases) {
+                if (db.name) {
+                    indexedDB.deleteDatabase(db.name);
+                }
+            }
+
+            // Clear OPFS (Origin Private File System)
+            try {
+                const root = await navigator.storage.getDirectory();
+                // @ts-ignore - removeEntry is available but types might not be updated
+                for await (const entry of root.values()) {
+                    await root.removeEntry(entry.name, { recursive: true });
+                }
+            } catch (e) {
+                console.log("OPFS clear not available:", e);
             }
         });
+
+        // Reload to get fresh state
+        await page.reload();
+        await page.waitForLoadState("networkidle");
     });
 
     test("shows empty state on first visit", async ({ page }) => {
@@ -23,7 +45,9 @@ test.describe("First Run Experience", () => {
 
         // Should show empty state message
         await expect(page.locator("text=No time entries yet")).toBeVisible();
-        await expect(page.locator("text=Start tracking your time")).toBeVisible();
+        await expect(
+            page.locator("text=Start tracking your time"),
+        ).toBeVisible();
     });
 
     test("displays welcome message for new users", async ({ page }) => {
@@ -31,10 +55,14 @@ test.describe("First Run Experience", () => {
 
         // Should have friendly welcome content
         await expect(page.locator("text=No time entries yet")).toBeVisible();
-        await expect(page.locator("text=Start tracking your time")).toBeVisible();
+        await expect(
+            page.locator("text=Start tracking your time"),
+        ).toBeVisible();
 
         // Should have clear call to action
-        const loadSampleButton = page.locator("button", { hasText: "Load Sample Data" });
+        const loadSampleButton = page.locator("button", {
+            hasText: "Load Sample Data",
+        });
         await expect(loadSampleButton).toBeVisible();
     });
 
@@ -42,7 +70,9 @@ test.describe("First Run Experience", () => {
         await page.goto("http://localhost:5173");
 
         // Should offer sample data option
-        const loadSampleButton = page.locator("button", { hasText: "Load Sample Data" });
+        const loadSampleButton = page.locator("button", {
+            hasText: "Load Sample Data",
+        });
         await expect(loadSampleButton).toBeVisible();
         await expect(loadSampleButton).toBeEnabled();
     });
@@ -51,7 +81,9 @@ test.describe("First Run Experience", () => {
         await page.goto("http://localhost:5173");
 
         // Click load sample data button
-        const loadSampleButton = page.locator("button", { hasText: "Load Sample Data" });
+        const loadSampleButton = page.locator("button", {
+            hasText: "Load Sample Data",
+        });
         await loadSampleButton.click();
 
         // Should show loading state briefly
@@ -89,7 +121,9 @@ test.describe("First Run Experience", () => {
         await expect(page.locator("text=No time entries yet")).toBeVisible();
 
         // Button should be accessible on mobile
-        const loadSampleButton = page.locator("button", { hasText: "Load Sample Data" });
+        const loadSampleButton = page.locator("button", {
+            hasText: "Load Sample Data",
+        });
         await expect(loadSampleButton).toBeVisible();
     });
 
@@ -104,15 +138,21 @@ test.describe("First Run Experience", () => {
         await expect(page.locator("text=No time entries yet")).toBeVisible();
 
         // Sample data button should still be present (even if it might not work offline)
-        const loadSampleButton = page.locator("button", { hasText: "Load Sample Data" });
+        const loadSampleButton = page.locator("button", {
+            hasText: "Load Sample Data",
+        });
         await expect(loadSampleButton).toBeVisible();
     });
 
-    test("preserves app functionality after first interaction", async ({ page }) => {
+    test("preserves app functionality after first interaction", async ({
+        page,
+    }) => {
         await page.goto("http://localhost:5173");
 
         // Interact with the empty state
-        const loadSampleButton = page.locator("button", { hasText: "Load Sample Data" });
+        const loadSampleButton = page.locator("button", {
+            hasText: "Load Sample Data",
+        });
         await loadSampleButton.click();
 
         // Wait for interaction to complete
@@ -133,10 +173,11 @@ test.describe("First Run Experience", () => {
         await page.waitForTimeout(1000);
 
         // Filter out non-critical errors
-        const criticalErrors = errors.filter(error =>
-            !error.includes("favicon") &&
-            !error.includes("livereload") &&
-            !error.includes("net::ERR_")
+        const criticalErrors = errors.filter(
+            (error) =>
+                !error.includes("favicon") &&
+                !error.includes("livereload") &&
+                !error.includes("net::ERR_"),
         );
 
         expect(criticalErrors).toHaveLength(0);
@@ -169,6 +210,8 @@ test.describe("First Run Experience", () => {
 
         // Should still show empty state (no data persistence yet)
         await expect(page.locator("text=No time entries yet")).toBeVisible();
-        await expect(page.locator("button", { hasText: "Load Sample Data" })).toBeVisible();
+        await expect(
+            page.locator("button", { hasText: "Load Sample Data" }),
+        ).toBeVisible();
     });
 });

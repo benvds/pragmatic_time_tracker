@@ -5,6 +5,11 @@ import { useStore } from "@livestore/react";
 import { Logbook } from "@/features";
 import { seedDevelopmentData } from "@/features/storage";
 import { ErrorBoundary } from "@/features/logbook/components/error-boundary";
+import { DebugOverlay } from "@/components/debug-overlay";
+import {
+    initializeDebugConsole,
+    cleanupDebugConsole,
+} from "@/lib/debug-console";
 
 export const App = () => {
     const { store } = useStore();
@@ -13,6 +18,9 @@ export const App = () => {
     useEffect(() => {
         const initializeApp = async () => {
             try {
+                // Initialize debug console API
+                initializeDebugConsole(store);
+
                 // Only seed in development mode
                 if (import.meta.env.DEV) {
                     const result = await seedDevelopmentData(store);
@@ -52,6 +60,11 @@ export const App = () => {
         };
 
         initializeApp();
+
+        // Cleanup on unmount
+        return () => {
+            cleanupDebugConsole();
+        };
     }, [store]);
 
     // Show loading state while seeding (only matters in dev)
@@ -78,6 +91,7 @@ export const App = () => {
         <MantineProvider>
             <ErrorBoundary>
                 <Logbook />
+                <DebugOverlay />
             </ErrorBoundary>
         </MantineProvider>
     );

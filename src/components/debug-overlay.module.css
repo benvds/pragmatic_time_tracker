@@ -1,0 +1,25 @@
+.debugOverlay {
+    position: fixed;
+    bottom: var(--mantine-spacing-md);
+    right: var(--mantine-spacing-md);
+    z-index: 1000;
+}
+
+.triggerButton {
+    box-shadow: var(--mantine-shadow-md);
+}
+
+.menu {
+    min-width: 200px;
+    max-width: 300px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.message {
+    font-size: var(--mantine-font-size-xs);
+}
