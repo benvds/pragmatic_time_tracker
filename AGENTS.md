@@ -1,53 +1,39 @@
 # AGENTS.md
 
-### Do
-
-- use kebab-case for file names, e.g.: `my-component.tsx`
-- use css modules for styling, e.g.: `import styles from "./field-error.module.css ";`
-- use css variables
-- use absolute paths for imports, e.g.: `import { Button } from "@/components/button";`
-- default to small components
-- use arrow functions
-- use named exports
-- check package.json for already installed dependencies
-- prefer simplicity, clear boundaries, and composition
-- for just a few requirements don't install a new dependency, prefer to use existing dependencies or write a small library module
-- when requiring dependencies use the preferred libraries listed below
-
-### Don't
-
-- do not use hard coded css values
-- do not hard code colors
-- do not add new dependencies without approval
-
 ### Commands
 
 ```zsh
 # file scoped checks preferred
 pnpm format path/to/file.ts
 pnpm lint path/to/file.tsx
-# check types
-pnpm check
-# tests
-pnpm test path/to/file.test.tsx
-# full build when explicitly requested
-pnpm build
+pnpm check           # type checking
+pnpm test path/to/file.test.tsx  # single test file
+pnpm test:e2e        # playwright e2e tests
+pnpm build           # full build (ask first)
 ```
+
+### Code style
+
+- **Imports**: use absolute paths with `@/` prefix (e.g. `import { useEntries } from "@/features/storage";`)
+- **Files**: kebab-case naming (e.g. `my-component.tsx`)
+- **Exports**: named exports, arrow functions for components
+- **Styling**: css modules with css variables (e.g. `import styles from "./field-error.module.css";`)
+- **Formatting**: 4-space tabs (prettier), oxlint for linting
+- **Types**: TypeScript strict mode, explicit types for public APIs
+- **Error handling**: throw custom error classes (see `ValidationError` in `src/features/storage/types.ts`)
+- **Components**: small, pure, colocated with styles and tests
+
+### Don't
+
+- hard code colors or css values (use css variables in `src/index.css`)
+- add new dependencies without approval (check package.json first)
+- use default exports or classes for components
 
 ### Safety and permissions
 
-Allowed without prompt:
+Allowed without prompt: read files, format, lint, type check, single vitest test
 
-- read files, list files
-- format, lint and type checking
-- vitest single test
-
-Ask first:
-
-- package installs
-- git push
-- deleting files, chmod
-- running full build or end to end suites
+Ask first: package installs, git push, delete files, chmod, full build, e2e test suite
 
 ### Project structure
 
@@ -86,44 +72,24 @@ features
 |   +-- index.ts      # entry point for this feature
 ```
 
-### Good and bad examples
+### Examples
 
-- non domain specific logic: look at `src/lib` modules
-- domain specific logic: look at `src/features/entry`
+- component patterns: `src/features/logbook/logbook.tsx`
+- custom hooks: `src/features/storage/hooks/use-entries.ts`
+- validation/error handling: `src/features/storage/lib/validation.ts`
+- non-domain logic: `src/lib` modules
 
-## Preferred libraries
+### Preferred libraries
 
-Prefer not to use external libraries for logic which can easily be implemented with native JavaScript.
-When enough logic is needed, consider using a library.
+- `@mantine/core`, `@mantine/hooks`, `@mantine/form`: UI components and forms
+- `@livestore/livestore`, `@livestore/react`: local-first storage and state
+- `@tabler/icons-react`: icons
+- `clsx`: conditional classnames
+- `vitest`: unit tests with happy-dom
+- `@playwright/test`: e2e tests
 
-- `clsx`: for conditional classnames with css modules for styling
-- `@tanstack/react-router`: for routing
-- `@tanstack/react-query`: for data fetching and caching
-- `@tanstack/react-form`: for form validation and submission
-- `@tabler/icons-react`: for icons
+### Workflow
 
-## Components & Styling
-
-- Small, pure components; prefer composition over inheritance.
-- Co-locate component, styles, and tests next to each other.
-- Keep presentational vs. container concerns separate when it clarifies intent.
-
-### PR checklist
-
-- format and type check: green
-- unit tests: green. add tests for new code paths
-- diff: small with a brief summary
-
-### When stuck
-
-- ask a clarifying question, propose a short plan, or open a draft PR with notes
-
-### Test first mode
-
-- write or update tests first on new features, then code to green
-
-### Design system
-
-- manage css variables in `src/index.css`
-- for colors take inspiration from: https://tailwindcss.com/docs/colors
-- for other variables and values like spacing, border radius, etc. take inspiration from: https://tailwindcss.com/docs/theme
+- test first: write/update tests before implementation
+- PR checklist: format, type check, unit tests green; small focused diffs
+- when stuck: ask clarifying questions or propose a plan
