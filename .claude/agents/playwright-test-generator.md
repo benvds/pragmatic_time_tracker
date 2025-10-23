@@ -31,7 +31,7 @@ application behavior.
 
    ```markdown file=specs/plan.md
    ### 1. Adding New Todos
-   **Seed:** `tests/seed.spec.ts`
+   **Seed:** use seeding from the storage feature
 
    #### 1.1 Add Valid Todo
    **Steps:**
