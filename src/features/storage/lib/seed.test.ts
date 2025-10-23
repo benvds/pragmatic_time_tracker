@@ -181,20 +181,19 @@ describe("Seed Utilities", () => {
 
             const result = await clearAllData(mockStore as any);
 
-            // Should query active entries only
             expect(mockStore.query).toHaveBeenCalledOnce();
 
-            // Should commit delete events for all active entries
             expect(mockStore.commit).toHaveBeenCalledOnce();
 
             const commitCall = mockStore.commit.mock.calls[0];
             expect(commitCall).toHaveLength(3);
 
-            commitCall.forEach((event: any, index: number) => {
+            for (let index = 0; index < commitCall.length; index++) {
+                const event = commitCall[index];
                 expect(event.name).toBe("v1.EntryDeleted");
                 expect(event.args.id).toBe(activeEntries[index].id);
                 expect(event.args.deletedAt).toBeInstanceOf(Date);
-            });
+            }
 
             expect(result).toEqual({ success: true, cleared: 3 });
         });

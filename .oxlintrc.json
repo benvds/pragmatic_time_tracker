@@ -6,5 +6,8 @@
         "jsx-a11y",
         "promise",
         "vitest"
-    ]
+    ],
+    "rules": {
+        "import/default": "off"
+    }
 }

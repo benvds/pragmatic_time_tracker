@@ -46,14 +46,14 @@ describe("Seed Integration Tests", () => {
 
             const committedEvents = mockStore.commit.mock.calls[0];
 
-            // Verify all events are properly structured
-            committedEvents.forEach((event: any) => {
+            expect(committedEvents.length).toBeGreaterThan(0);
+            for (const event of committedEvents) {
                 expect(event).toHaveProperty("name", "v1.EntryCreated");
                 expect(event.args).toHaveProperty("id");
                 expect(event.args).toHaveProperty("date");
                 expect(event.args).toHaveProperty("minutes");
                 expect(event.args).toHaveProperty("description");
-            });
+            }
         });
     });
 
@@ -148,21 +148,22 @@ describe("Seed Integration Tests", () => {
             expect(result.success).toBe(true);
             expect(result.cleared).toBe(3);
 
-            // Should commit delete events for each active entry
             const deleteEvents = mockStore.commit.mock.calls[0];
             expect(deleteEvents).toHaveLength(3);
 
-            deleteEvents.forEach((event: any, index: number) => {
+            for (let index = 0; index < deleteEvents.length; index++) {
+                const event = deleteEvents[index];
                 expect(event.name).toBe("v1.EntryDeleted");
                 expect(event.args.id).toBe(activeEntries[index].id);
                 expect(event.args.deletedAt).toBeInstanceOf(Date);
-            });
+            }
         });
     });
 
     describe("Seed Data Validation", () => {
         it("development seed data has required properties", () => {
-            developmentSeedData.forEach((event) => {
+            expect(developmentSeedData.length).toBeGreaterThan(0);
+            for (const event of developmentSeedData) {
                 expect(event.name).toBe("v1.EntryCreated");
                 expect(event.args.id).toMatch(/^dev-\d+$/);
                 expect(event.args.date).toBeInstanceOf(Date);
@@ -170,7 +171,7 @@ describe("Seed Integration Tests", () => {
                 expect(typeof event.args.description).toBe("string");
                 expect(event.args.minutes).toBeGreaterThan(0);
                 expect(event.args.description.length).toBeGreaterThan(0);
-            });
+            }
         });
 
         it("test seed data includes edge cases and deletions", () => {

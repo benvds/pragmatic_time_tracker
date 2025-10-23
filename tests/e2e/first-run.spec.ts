@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { SELECTORS } from "../helpers/selectors";
 import { navigateToApp, clearDataViaDebugMenu } from "../helpers/app-actions";
 import { verifyEmptyState } from "../helpers/app-assertions";

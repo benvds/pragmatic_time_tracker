@@ -38,10 +38,10 @@ describe("useEntries", () => {
     it("should filter out deleted entries", () => {
         const { result } = renderHook(() => useEntries());
 
-        // All returned entries should have deletedAt: null
-        result.current.forEach((entry) => {
+        expect(result.current.length).toBeGreaterThan(0);
+        for (const entry of result.current) {
             expect(entry.deletedAt).toBeNull();
-        });
+        }
     });
 
     it("should handle empty state", () => {
