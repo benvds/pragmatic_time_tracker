@@ -1,51 +1,12 @@
-import { test, expect, type Page, type BrowserContext } from "@playwright/test";
-import { clearAllStorage } from "../helpers/clear-storage";
-
-const OFFLINE_WAIT_TIME = 500;
-const NON_CRITICAL_ERROR_PATTERNS = [
-    "favicon",
-    "livereload",
-    "net::ERR_",
-    "Failed to fetch",
-    "WorkerError",
-];
-
-async function verifyAppLoaded(page: Page) {
-    await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
-    await expect(page.locator("table")).toBeVisible();
-}
-
-async function verifyTableHeaders(page: Page) {
-    await expect(page.locator("th", { hasText: "Date" })).toBeVisible();
-    await expect(page.locator("th", { hasText: "Duration" })).toBeVisible();
-    await expect(page.locator("th", { hasText: "Description" })).toBeVisible();
-}
-
-async function goOffline(context: BrowserContext, page: Page) {
-    await context.setOffline(true);
-    await page.waitForTimeout(OFFLINE_WAIT_TIME);
-}
-
-async function goOnline(context: BrowserContext, page: Page) {
-    await context.setOffline(false);
-    await page.waitForTimeout(OFFLINE_WAIT_TIME);
-}
-
-function isNonCriticalError(error: string): boolean {
-    return NON_CRITICAL_ERROR_PATTERNS.some((pattern) =>
-        error.includes(pattern),
-    );
-}
+import { test, expect } from "@playwright/test";
+import { SELECTORS } from "../helpers/selectors";
+import { goOffline, goOnline } from "../helpers/app-actions";
+import { verifyAppLoaded, verifyTableHeaders } from "../helpers/app-assertions";
+import { filterCriticalErrors } from "../helpers/error-filtering";
 
 test.describe("Offline Operations", () => {
-    let storageCleared = false;
-
     test.beforeEach(async ({ page }) => {
-        if (!storageCleared) {
-            await page.goto("/");
-            await clearAllStorage(page);
-            storageCleared = true;
-        }
+        await page.goto("/");
     });
 
     test("app loads and functions when going offline", async ({
@@ -100,7 +61,7 @@ test.describe("Offline Operations", () => {
         await verifyAppLoaded(page);
 
         await goOffline(context, page);
-        await expect(page.locator("table")).toBeVisible();
+        await expect(page.locator(SELECTORS.TABLE)).toBeVisible();
 
         await goOnline(context, page);
         await verifyAppLoaded(page);
@@ -110,18 +71,24 @@ test.describe("Offline Operations", () => {
         page,
         context,
     }) => {
-        const initialTitle = await page.locator("h1").textContent();
-        const initialTableVisible = await page.locator("table").isVisible();
+        const initialTitle = await page.locator(SELECTORS.TITLE).textContent();
+        const initialTableVisible = await page
+            .locator(SELECTORS.TABLE)
+            .isVisible();
 
         await goOffline(context, page);
-        expect(await page.locator("h1").textContent()).toBe(initialTitle);
-        expect(await page.locator("table").isVisible()).toBe(
+        expect(await page.locator(SELECTORS.TITLE).textContent()).toBe(
+            initialTitle,
+        );
+        expect(await page.locator(SELECTORS.TABLE).isVisible()).toBe(
             initialTableVisible,
         );
 
         await goOnline(context, page);
-        expect(await page.locator("h1").textContent()).toBe(initialTitle);
-        expect(await page.locator("table").isVisible()).toBe(
+        expect(await page.locator(SELECTORS.TITLE).textContent()).toBe(
+            initialTitle,
+        );
+        expect(await page.locator(SELECTORS.TABLE).isVisible()).toBe(
             initialTableVisible,
         );
     });
@@ -140,9 +107,7 @@ test.describe("Offline Operations", () => {
         await goOffline(context, page);
         await page.waitForTimeout(500);
 
-        const criticalErrors = errors.filter(
-            (error) => !isNonCriticalError(error),
-        );
+        const criticalErrors = filterCriticalErrors(errors);
 
         expect(criticalErrors).toHaveLength(0);
     });
@@ -155,7 +120,9 @@ test.describe("Offline Operations", () => {
 
         const startTime = Date.now();
         await page.waitForTimeout(100);
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
+        await expect(page.locator(SELECTORS.TITLE)).toContainText(
+            "Time Tracker Logbook",
+        );
         const responseTime = Date.now() - startTime;
 
         expect(responseTime).toBeLessThan(1000);

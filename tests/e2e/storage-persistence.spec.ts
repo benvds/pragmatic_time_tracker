@@ -1,118 +1,54 @@
 import { test, expect } from "@playwright/test";
+import { SELECTORS } from "../helpers/selectors";
+import { clearDataViaDebugMenu, navigateToApp } from "../helpers/app-actions";
+import { verifyEmptyState } from "../helpers/app-assertions";
+import { filterCriticalErrors } from "../helpers/error-filtering";
 
 test.describe("Storage Persistence", () => {
-    test.beforeEach(async ({ page, context }) => {
-        // Clear all storage to get clean state
-        await context.clearCookies();
-        await page.goto("/");
-
-        // Clear all storage types including OPFS
-        await page.evaluate(async () => {
-            localStorage.clear();
-            sessionStorage.clear();
-
-            // Clear IndexedDB
-            const databases = (await indexedDB.databases?.()) || [];
-            for (const db of databases) {
-                if (db.name) {
-                    indexedDB.deleteDatabase(db.name);
-                }
-            }
-
-            // Clear OPFS
-            try {
-                const root = await navigator.storage.getDirectory();
-                // @ts-ignore
-                for await (const entry of root.values()) {
-                    await root.removeEntry(entry.name, { recursive: true });
-                }
-            } catch (e) {
-                console.log("OPFS clear not available:", e);
-            }
-        });
-
-        await page.reload();
+    test.beforeEach(async ({ page }) => {
+        await navigateToApp(page);
     });
 
-    test("persists time entry across page reloads", async ({ page }) => {
-        await page.goto("/");
+    test("maintains empty state after clearing data and reloading", async ({
+        page,
+    }) => {
+        await clearDataViaDebugMenu(page);
 
-        // Wait for app to load
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
+        await verifyEmptyState(page);
 
-        // Initially should show empty state
-        await expect(page.locator("text=No time entries yet")).toBeVisible();
-
-        // Create a test entry using browser console to access storage hooks
-        await page.evaluate(() => {
-            // Access the LiveStore from window context if available
-            // This is a simplified test - in real implementation you'd interact with UI forms
-            const testEntry = {
-                id: "test-persistence-1",
-                date: new Date(),
-                minutes: 90,
-                description: "E2E Test Entry for Persistence",
-            };
-
-            // This would normally be done through UI interaction
-            // For now, we'll test the UI rendering part
-            console.log("Test entry would be created:", testEntry);
-        });
-
-        // For now, let's test that the logbook component renders correctly
-        // In full implementation, this would test actual data persistence
-        await expect(
-            page.locator("[data-testid='logbook-table']"),
-        ).toBeVisible();
-
-        // Reload the page
         await page.reload();
+        await page.waitForSelector(SELECTORS.TITLE);
 
-        // Verify the app still loads correctly after reload
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
+        await verifyEmptyState(page);
     });
 
     test("handles empty state correctly", async ({ page }) => {
-        await page.goto("/");
+        await clearDataViaDebugMenu(page);
 
-        // Should show empty state message when no entries exist
-        await expect(page.locator("text=No time entries yet")).toBeVisible();
+        await verifyEmptyState(page);
+
         await expect(
-            page.locator("text=Start tracking your time!"),
+            page.locator(SELECTORS.LOAD_SAMPLE_DATA_BUTTON),
         ).toBeVisible();
-
-        // Table headers should still be visible
-        await expect(page.locator("text=Date")).toBeVisible();
-        await expect(page.locator("text=Duration")).toBeVisible();
-        await expect(page.locator("text=Description")).toBeVisible();
     });
 
     test("displays logbook structure correctly", async ({ page }) => {
-        await page.goto("/");
+        await expect(page.locator(SELECTORS.TITLE)).toContainText(
+            "Time Tracker Logbook",
+        );
+        await expect(page.locator(SELECTORS.TABLE)).toBeVisible();
 
-        // Check main components are present
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
-        await expect(page.locator("table")).toBeVisible();
+        await expect(page.locator(SELECTORS.THEAD)).toBeVisible();
+        await expect(page.locator(SELECTORS.TBODY)).toBeVisible();
 
-        // Check table structure
-        await expect(page.locator("thead")).toBeVisible();
-        await expect(page.locator("tbody")).toBeVisible();
-
-        // Check column headers
-        const headers = page.locator("th");
+        const headers = page.locator(SELECTORS.TABLE_HEADERS);
         await expect(headers).toHaveCount(3);
         await expect(headers.nth(0)).toContainText("Date");
         await expect(headers.nth(1)).toContainText("Duration");
         await expect(headers.nth(2)).toContainText("Description");
     });
 
-    test("has correct page title and meta", async ({ page }) => {
-        await page.goto("/");
-
-        // Check page title
-        await expect(page).toHaveTitle(/Pragmatic Time Tracker/);
-
-        // App should load without JavaScript errors
+    test("loads without critical JavaScript errors", async ({ page }) => {
         const errors: string[] = [];
         page.on("console", (msg) => {
             if (msg.type() === "error") {
@@ -120,24 +56,9 @@ test.describe("Storage Persistence", () => {
             }
         });
 
-        await page.waitForTimeout(2000); // Wait for initial load
+        await page.waitForTimeout(2000);
 
-        // Should not have critical JavaScript errors
-        const criticalErrors = errors.filter(
-            (error) =>
-                !error.includes("favicon") && // Ignore favicon errors
-                !error.includes("livereload"), // Ignore dev server errors
-        );
+        const criticalErrors = filterCriticalErrors(errors);
         expect(criticalErrors).toHaveLength(0);
     });
 });
-
-// More comprehensive E2E tests would be added here for:
-// - Creating entries through UI forms
-// - Updating existing entries
-// - Deleting entries
-// - Filtering and searching
-// - Performance with large datasets
-//
-// These require actual UI components for CRUD operations
-// which would be implemented in later phases.

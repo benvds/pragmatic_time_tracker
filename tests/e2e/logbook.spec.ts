@@ -1,38 +1,22 @@
 import { test, expect } from "@playwright/test";
+import {
+    SELECTORS,
+    TIMEOUTS,
+    PATTERNS,
+    COLUMN_INDEX,
+    HEADERS,
+} from "../helpers/selectors";
+import { ensureSampleDataLoaded } from "../helpers/app-actions";
+import { getTableRows, getCellText } from "../helpers/table-helpers";
 
 test.describe("Logbook", () => {
     test.beforeEach(async ({ page, context }) => {
-        // Clear storage for consistent test state
         await context.clearCookies();
         await page.goto(".");
-
-        // Wait for app to be ready
-        await page.waitForSelector("h1:has-text('Time Tracker Logbook')", {
-            timeout: 10000,
+        await page.waitForSelector(SELECTORS.TITLE, {
+            timeout: TIMEOUTS.APP_READY,
         });
-
-        // Load sample data using debug overlay
-        // Check if table exists, if not load sample data
-        const tableExists = await page
-            .locator("table tbody tr")
-            .first()
-            .isVisible()
-            .catch(() => false);
-
-        if (!tableExists) {
-            // Open debug overlay
-            await page
-                .locator('[aria-label="Open debug tools"]')
-                .click({ timeout: 5000 });
-
-            // Click "Load Sample Data" button in debug overlay
-            await page
-                .locator('button:has-text("Load Sample Data")')
-                .click({ timeout: 5000 });
-
-            // Wait for data to load - table should appear
-            await page.waitForSelector("table tbody tr", { timeout: 10000 });
-        }
+        await ensureSampleDataLoaded(page);
     });
 
     test("displays the logbook title", async ({ page }) => {
@@ -42,68 +26,49 @@ test.describe("Logbook", () => {
     });
 
     test("displays the table headers", async ({ page }) => {
-        await expect(page.locator("th", { hasText: "Date" })).toBeVisible();
-        await expect(page.locator("th", { hasText: "Duration" })).toBeVisible();
-        await expect(
-            page.locator("th", { hasText: "Description" }),
-        ).toBeVisible();
+        for (const header of HEADERS) {
+            await expect(
+                page.locator(SELECTORS.TABLE_HEADERS, { hasText: header }),
+            ).toBeVisible();
+        }
     });
 
     test("displays time entries in a table", async ({ page }) => {
-        const table = page.getByRole("table");
-        await expect(table).toBeVisible();
+        await expect(page.getByRole("table")).toBeVisible();
 
-        // Check that there are rows in the table body
-        const rows = page.locator("tbody tr");
+        const rows = await getTableRows(page);
         await expect(rows).not.toHaveCount(0);
     });
 
     test("each entry has date, duration, and description columns", async ({
         page,
     }) => {
-        const firstRow = page.locator("tbody tr").first();
+        const firstRow = page.locator(SELECTORS.TABLE_ROWS).first();
         await expect(firstRow).toBeVisible();
 
-        // Check that each row has 3 cells
         const cells = firstRow.locator("td");
         await expect(cells).toHaveCount(3);
 
-        // Check that date cell contains expected format (e.g., "Jan 15")
-        const dateCell = cells.nth(0);
-        await expect(dateCell).toContainText(/\w{3} \d{1,2}/);
-
-        // Check that duration cell contains time format (e.g., "2h 30m" or "45m" or "8h")
-        const durationCell = cells.nth(1);
-        await expect(durationCell).toContainText(/\d+[hm](\s\d+m)?/);
-
-        // Description cell may contain text or em dash for empty
-        const descriptionCell = cells.nth(2);
-        await expect(descriptionCell).toBeVisible();
+        await expect(cells.nth(COLUMN_INDEX.DATE)).toContainText(PATTERNS.DATE);
+        await expect(cells.nth(COLUMN_INDEX.DURATION)).toContainText(
+            PATTERNS.DURATION,
+        );
+        await expect(cells.nth(COLUMN_INDEX.DESCRIPTION)).toBeVisible();
     });
 
     test("entries are displayed in reverse chronological order", async ({
         page,
     }) => {
-        const rows = page.locator("tbody tr");
+        const rows = await getTableRows(page);
         const rowCount = await rows.count();
 
         if (rowCount >= 2) {
-            const firstRowDate = await rows
-                .nth(0)
-                .locator("td")
-                .nth(0)
-                .textContent();
-            const secondRowDate = await rows
-                .nth(1)
-                .locator("td")
-                .nth(0)
-                .textContent();
+            const firstRowDate = await getCellText(page, 0, COLUMN_INDEX.DATE);
+            const secondRowDate = await getCellText(page, 1, COLUMN_INDEX.DATE);
 
-            // Parse dates to compare (simplified check for month/day format)
             const firstDate = new Date(firstRowDate + ", 2024");
             const secondDate = new Date(secondRowDate + ", 2024");
 
-            // First entry should be more recent than or equal to second entry
             expect(firstDate.getTime()).toBeGreaterThanOrEqual(
                 secondDate.getTime(),
             );
@@ -111,51 +76,44 @@ test.describe("Logbook", () => {
     });
 
     test("handles empty descriptions gracefully", async ({ page }) => {
-        const descriptionCells = page.locator("tbody tr td:nth-child(3)");
+        const descriptionCells = page.locator(
+            `${SELECTORS.TABLE_ROWS} td:nth-child(${COLUMN_INDEX.DESCRIPTION + 1})`,
+        );
         const cellCount = await descriptionCells.count();
 
-        // Check that at least one cell exists
         expect(cellCount).toBeGreaterThan(0);
 
-        // Look for cells with em dash (—) which indicates empty description
-        const emptyDescriptions = page.locator("tbody tr td:nth-child(3)", {
-            hasText: "—",
-        });
+        const emptyDescriptions = page.locator(
+            `${SELECTORS.TABLE_ROWS} td:nth-child(${COLUMN_INDEX.DESCRIPTION + 1})`,
+            { hasText: "—" },
+        );
         const emptyCount = await emptyDescriptions.count();
 
-        // Should have some entries with descriptions and some without
         expect(emptyCount).toBeGreaterThanOrEqual(0);
         expect(emptyCount).toBeLessThan(cellCount);
     });
 
     test("duration formats are valid", async ({ page }) => {
-        const durationCells = page.locator("tbody tr td:nth-child(2)");
+        const durationCells = page.locator(
+            `${SELECTORS.TABLE_ROWS} td:nth-child(${COLUMN_INDEX.DURATION + 1})`,
+        );
         const durationCount = await durationCells.count();
 
-        if (durationCount > 0) {
-            // Check first few duration formats
-            for (let i = 0; i < Math.min(3, durationCount); i++) {
-                const durationText = await durationCells.nth(i).textContent();
-
-                // Should match patterns like "2h", "30m", "2h 30m"
-                expect(durationText).toMatch(/^\d+[hm](\s\d+m)?$/);
-            }
+        const checksToPerform = Math.min(3, durationCount);
+        for (let i = 0; i < checksToPerform; i++) {
+            const durationText = await durationCells.nth(i).textContent();
+            expect(durationText).toMatch(PATTERNS.DURATION_STRICT);
         }
     });
 
     test("table is responsive and accessible", async ({ page }) => {
-        // Check table accessibility
         const table = page.getByRole("table");
         await expect(table).toBeVisible();
 
-        // Check headers are properly associated
-        const headers = page.locator("th");
-        await expect(headers).toHaveCount(3);
+        const headers = page.locator(SELECTORS.TABLE_HEADERS);
+        await expect(headers).toHaveCount(HEADERS.length);
 
-        // Check table has proper structure
-        const thead = page.locator("thead");
-        const tbody = page.locator("tbody");
-        await expect(thead).toBeVisible();
-        await expect(tbody).toBeVisible();
+        await expect(page.locator(SELECTORS.THEAD)).toBeVisible();
+        await expect(page.locator(SELECTORS.TBODY)).toBeVisible();
     });
 });

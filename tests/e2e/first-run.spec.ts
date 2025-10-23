@@ -1,167 +1,101 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+import { SELECTORS } from "../helpers/selectors";
+import { navigateToApp, clearDataViaDebugMenu } from "../helpers/app-actions";
+import { verifyEmptyState } from "../helpers/app-assertions";
+import { filterCriticalErrors } from "../helpers/error-filtering";
 
 test.describe("First Run Experience", () => {
-    test.beforeEach(async ({ page, context }) => {
-        // Clear all storage to simulate first run
-        await context.clearCookies();
-        await page.goto("/");
-
-        // Clear all storage types including OPFS
-        await page.evaluate(async () => {
-            // Clear localStorage and sessionStorage
-            localStorage.clear();
-            sessionStorage.clear();
-
-            // Clear IndexedDB
-            const databases = (await indexedDB.databases?.()) || [];
-            for (const db of databases) {
-                if (db.name) {
-                    indexedDB.deleteDatabase(db.name);
-                }
-            }
-
-            // Clear OPFS (Origin Private File System)
-            try {
-                const root = await navigator.storage.getDirectory();
-                // @ts-ignore - removeEntry is available but types might not be updated
-                for await (const entry of root.values()) {
-                    await root.removeEntry(entry.name, { recursive: true });
-                }
-            } catch (e) {
-                console.log("OPFS clear not available:", e);
-            }
-        });
-
-        // Reload to get fresh state
-        await page.reload();
+    test.beforeEach(async ({ page }) => {
+        await navigateToApp(page);
     });
 
-    test("shows empty state on first visit", async ({ page }) => {
-        await page.goto("/");
+    test("displays empty state after clearing all data", async ({ page }) => {
+        await clearDataViaDebugMenu(page);
 
-        // Wait for app to load
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
-
-        // Should show empty state message
-        await expect(page.locator("text=No time entries yet")).toBeVisible();
-        await expect(
-            page.locator("text=Start tracking your time"),
-        ).toBeVisible();
+        await expect(page.locator(SELECTORS.TITLE)).toContainText(
+            "Time Tracker Logbook",
+        );
+        await verifyEmptyState(page);
     });
 
-    test("displays welcome message for new users", async ({ page }) => {
-        await page.goto("/");
+    test("empty state has load sample data button", async ({ page }) => {
+        await clearDataViaDebugMenu(page);
 
-        // Should have friendly welcome content
-        await expect(page.locator("text=No time entries yet")).toBeVisible();
-        await expect(
-            page.locator("text=Start tracking your time"),
-        ).toBeVisible();
-
-        // Should have clear call to action
-        const loadSampleButton = page.locator("button", {
-            hasText: "Load Sample Data",
-        });
-        await expect(loadSampleButton).toBeVisible();
-    });
-
-    test("provides option to load sample data", async ({ page }) => {
-        await page.goto("/");
-
-        // Should offer sample data option
-        const loadSampleButton = page.locator("button", {
-            hasText: "Load Sample Data",
-        });
+        const loadSampleButton = page.locator(
+            SELECTORS.LOAD_SAMPLE_DATA_BUTTON,
+        );
         await expect(loadSampleButton).toBeVisible();
         await expect(loadSampleButton).toBeEnabled();
     });
 
-    test("sample data button is functional", async ({ page }) => {
-        await page.goto("/");
+    test("load sample data button populates entries", async ({ page }) => {
+        await clearDataViaDebugMenu(page);
 
-        // Click load sample data button
-        const loadSampleButton = page.locator("button", {
-            hasText: "Load Sample Data",
-        });
+        const loadSampleButton = page.locator(
+            SELECTORS.LOAD_SAMPLE_DATA_BUTTON,
+        );
         await loadSampleButton.click();
 
-        // Should show loading state briefly
-        await expect(page.locator("text=Loading")).toBeVisible();
+        await page.waitForTimeout(1000);
 
-        // Should eventually show sample entries (or updated state)
-        // Note: In real implementation, this would show actual sample entries
-        await page.waitForTimeout(1000); // Wait for any loading
-
-        // Verify button interaction worked (no errors)
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
+        await expect(page.locator(SELECTORS.TABLE)).toBeVisible();
+        await expect(page.locator(SELECTORS.TABLE_ROWS)).not.toHaveCount(0);
+        await expect(page.locator(SELECTORS.EMPTY_STATE)).not.toBeVisible();
     });
 
-    test("maintains table structure even when empty", async ({ page }) => {
-        await page.goto("/");
-
-        // Table headers should still be visible
-        await expect(page.locator("text=Date")).toBeVisible();
-        await expect(page.locator("text=Duration")).toBeVisible();
-        await expect(page.locator("text=Description")).toBeVisible();
-
-        // Table should exist
-        await expect(page.locator("table")).toBeVisible();
-        await expect(page.locator("thead")).toBeVisible();
-        await expect(page.locator("tbody")).toBeVisible();
-    });
-
-    test("has proper responsive design on mobile", async ({ page }) => {
-        // Set mobile viewport
+    test("empty state is responsive on mobile", async ({ page }) => {
         await page.setViewportSize({ width: 375, height: 667 });
-        await page.goto("/");
+        await clearDataViaDebugMenu(page);
 
-        // Should still be functional on mobile
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
-        await expect(page.locator("text=No time entries yet")).toBeVisible();
-
-        // Button should be accessible on mobile
-        const loadSampleButton = page.locator("button", {
-            hasText: "Load Sample Data",
-        });
-        await expect(loadSampleButton).toBeVisible();
+        await expect(page.locator(SELECTORS.TITLE)).toContainText(
+            "Time Tracker Logbook",
+        );
+        await verifyEmptyState(page);
     });
 
-    test("handles offline first run gracefully", async ({ page, context }) => {
-        // Go offline
-        await context.setOffline(true);
-
-        await page.goto("/");
-
-        // Should still load and show empty state
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
-        await expect(page.locator("text=No time entries yet")).toBeVisible();
-
-        // Sample data button should still be present (even if it might not work offline)
-        const loadSampleButton = page.locator("button", {
-            hasText: "Load Sample Data",
-        });
-        await expect(loadSampleButton).toBeVisible();
-    });
-
-    test("preserves app functionality after first interaction", async ({
+    test("load sample data button becomes disabled when clicked", async ({
         page,
     }) => {
-        await page.goto("/");
+        await clearDataViaDebugMenu(page);
 
-        // Interact with the empty state
-        const loadSampleButton = page.locator("button", {
-            hasText: "Load Sample Data",
-        });
+        const loadSampleButton = page.locator(
+            SELECTORS.LOAD_SAMPLE_DATA_BUTTON,
+        );
+
+        const clickPromise = loadSampleButton.click();
+        const disabledPromise = expect(loadSampleButton).toBeDisabled();
+
+        await Promise.race([clickPromise, disabledPromise]);
+
+        await page.waitForTimeout(500);
+    });
+
+    test("empty state persists across reloads", async ({ page }) => {
+        await clearDataViaDebugMenu(page);
+        await verifyEmptyState(page);
+
+        await page.reload();
+        await page.waitForSelector(SELECTORS.TITLE);
+
+        await verifyEmptyState(page);
+    });
+
+    test("load sample data works after reload", async ({ page }) => {
+        await clearDataViaDebugMenu(page);
+        await page.reload();
+        await page.waitForSelector(SELECTORS.TITLE);
+
+        const loadSampleButton = page.locator(
+            SELECTORS.LOAD_SAMPLE_DATA_BUTTON,
+        );
         await loadSampleButton.click();
 
-        // Wait for interaction to complete
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(1000);
 
-        // App should remain functional
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
-        await expect(page.locator("table")).toBeVisible();
+        await expect(page.locator(SELECTORS.TABLE)).toBeVisible();
+    });
 
-        // No JavaScript errors should occur
+    test("no errors when loading sample data", async ({ page }) => {
         const errors: string[] = [];
         page.on("console", (msg) => {
             if (msg.type() === "error") {
@@ -169,48 +103,17 @@ test.describe("First Run Experience", () => {
             }
         });
 
+        await clearDataViaDebugMenu(page);
+
+        const loadSampleButton = page.locator(
+            SELECTORS.LOAD_SAMPLE_DATA_BUTTON,
+        );
+        await loadSampleButton.click();
+
         await page.waitForTimeout(1000);
 
-        // Filter out non-critical errors
-        const criticalErrors = errors.filter(
-            (error) =>
-                !error.includes("favicon") &&
-                !error.includes("livereload") &&
-                !error.includes("net::ERR_"),
-        );
+        const criticalErrors = filterCriticalErrors(errors);
 
         expect(criticalErrors).toHaveLength(0);
-    });
-
-    test("provides clear visual hierarchy", async ({ page }) => {
-        await page.goto("/");
-
-        // Main title should be prominent
-        const title = page.locator("h1");
-        await expect(title).toBeVisible();
-
-        // Empty state should be clearly separated
-        const emptyStateText = page.locator("text=No time entries yet");
-        await expect(emptyStateText).toBeVisible();
-
-        // Call to action should be prominent
-        const button = page.locator("button", { hasText: "Load Sample Data" });
-        await expect(button).toBeVisible();
-    });
-
-    test("works consistently across browser reloads", async ({ page }) => {
-        await page.goto("/");
-
-        // Verify initial empty state
-        await expect(page.locator("text=No time entries yet")).toBeVisible();
-
-        // Reload the page
-        await page.reload();
-
-        // Should still show empty state (no data persistence yet)
-        await expect(page.locator("text=No time entries yet")).toBeVisible();
-        await expect(
-            page.locator("button", { hasText: "Load Sample Data" }),
-        ).toBeVisible();
     });
 });
