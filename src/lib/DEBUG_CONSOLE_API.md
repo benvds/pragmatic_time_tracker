@@ -17,10 +17,11 @@ Open the browser DevTools console and use the `__debug` object:
 ### Load Sample Data
 
 ```javascript
-__debug.load()
+__debug.load();
 ```
 
 Loads sample time tracking entries into the database. Useful for:
+
 - Testing with realistic data
 - Previewing the UI with content
 - E2E test setup
@@ -28,10 +29,11 @@ Loads sample time tracking entries into the database. Useful for:
 ### Clear All Data
 
 ```javascript
-__debug.clear()
+__debug.clear();
 ```
 
 Clears all time entries from the database. Useful for:
+
 - Resetting to a clean state
 - Testing empty states
 - Starting fresh
@@ -39,7 +41,7 @@ Clears all time entries from the database. Useful for:
 ### Get Help
 
 ```javascript
-__debug.help()
+__debug.help();
 ```
 
 Displays available commands and usage examples in the console.

@@ -74,9 +74,7 @@ export function DebugOverlay() {
             setMessage({
                 type: "error",
                 text:
-                    err instanceof Error
-                        ? err.message
-                        : "Failed to clear data",
+                    err instanceof Error ? err.message : "Failed to clear data",
             });
         } finally {
             setIsLoading(false);
@@ -151,7 +149,9 @@ export function DebugOverlay() {
                         {message && (
                             <Alert
                                 icon={<IconAlertCircle size={16} />}
-                                color={message.type === "success" ? "green" : "red"}
+                                color={
+                                    message.type === "success" ? "green" : "red"
+                                }
                                 variant="light"
                                 className={styles.message}
                             >
