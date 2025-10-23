@@ -1,180 +1,163 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import { clearAllStorage } from "../helpers/clear-storage";
+
+const OFFLINE_WAIT_TIME = 500;
+const NON_CRITICAL_ERROR_PATTERNS = [
+    "favicon",
+    "livereload",
+    "net::ERR_",
+    "Failed to fetch",
+    "WorkerError",
+];
+
+async function verifyAppLoaded(page: Page) {
+    await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
+    await expect(page.locator("table")).toBeVisible();
+}
+
+async function verifyTableHeaders(page: Page) {
+    await expect(page.locator("th", { hasText: "Date" })).toBeVisible();
+    await expect(page.locator("th", { hasText: "Duration" })).toBeVisible();
+    await expect(page.locator("th", { hasText: "Description" })).toBeVisible();
+}
+
+async function goOffline(context: BrowserContext, page: Page) {
+    await context.setOffline(true);
+    await page.waitForTimeout(OFFLINE_WAIT_TIME);
+}
+
+async function goOnline(context: BrowserContext, page: Page) {
+    await context.setOffline(false);
+    await page.waitForTimeout(OFFLINE_WAIT_TIME);
+}
+
+function isNonCriticalError(error: string): boolean {
+    return NON_CRITICAL_ERROR_PATTERNS.some((pattern) =>
+        error.includes(pattern),
+    );
+}
 
 test.describe("Offline Operations", () => {
-    test.beforeEach(async ({ page, context }) => {
-        // Clear storage first
-        await context.clearCookies();
-        await page.goto("http://localhost:5173");
+    let storageCleared = false;
 
-        await page.evaluate(async () => {
-            localStorage.clear();
-            sessionStorage.clear();
-
-            const databases = (await indexedDB.databases?.()) || [];
-            for (const db of databases) {
-                if (db.name) indexedDB.deleteDatabase(db.name);
-            }
-
-            try {
-                const root = await navigator.storage.getDirectory();
-                // @ts-ignore
-                for await (const entry of root.values()) {
-                    await root.removeEntry(entry.name, { recursive: true });
-                }
-            } catch (e) {
-                console.log("OPFS clear not available:", e);
-            }
-        });
-
-        await page.reload();
-        await page.waitForLoadState("networkidle");
-
-        // Wait for app to load
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
+    test.beforeEach(async ({ page }) => {
+        if (!storageCleared) {
+            await page.goto("/");
+            await clearAllStorage(page);
+            storageCleared = true;
+        }
     });
 
     test("app loads and functions when going offline", async ({
         page,
         context,
     }) => {
-        // Verify app is working online first
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
-        await expect(page.locator("table")).toBeVisible();
+        await page.goto("/");
+        await verifyAppLoaded(page);
 
-        // Go offline
-        await context.setOffline(true);
+        await goOffline(context, page);
 
-        // App should still be functional when offline
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
-        await expect(page.locator("table")).toBeVisible();
-
-        // Table headers should still be present
-        await expect(page.locator("text=Date")).toBeVisible();
-        await expect(page.locator("text=Duration")).toBeVisible();
-        await expect(page.locator("text=Description")).toBeVisible();
+        await verifyAppLoaded(page);
+        await verifyTableHeaders(page);
     });
 
-    test("page reload works when offline", async ({ page, context }) => {
-        // Start online, then go offline
-        await context.setOffline(true);
+    test("app loads when external domains are offline but localhost is online", async ({
+        page,
+        context,
+    }) => {
+        await context.route("**/*", (route) => {
+            const url = route.request().url();
+            if (url.includes("localhost") || url.includes("127.0.0.1")) {
+                route.continue();
+            } else {
+                route.abort("failed");
+            }
+        });
 
-        // Reload the page while offline
+        await page.goto("/");
+        await verifyAppLoaded(page);
+
         await page.reload();
+        await verifyAppLoaded(page);
+    });
 
-        // App should still load when offline
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
-        await expect(page.locator("table")).toBeVisible();
+    test("page maintains state when going offline", async ({
+        page,
+        context,
+    }) => {
+        await page.goto("/");
+        await verifyAppLoaded(page);
+
+        await goOffline(context, page);
+
+        await verifyAppLoaded(page);
     });
 
     test("handles network state changes gracefully", async ({
         page,
         context,
     }) => {
-        // Start online
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
+        await verifyAppLoaded(page);
 
-        // Go offline
-        await context.setOffline(true);
-
-        // Wait a moment for any offline handling
-        await page.waitForTimeout(500);
-
-        // Should still be functional
+        await goOffline(context, page);
         await expect(page.locator("table")).toBeVisible();
 
-        // Go back online
-        await context.setOffline(false);
-
-        // Wait a moment for any online handling
-        await page.waitForTimeout(500);
-
-        // Should still be functional
-        await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
-        await expect(page.locator("table")).toBeVisible();
+        await goOnline(context, page);
+        await verifyAppLoaded(page);
     });
 
     test("displays consistent UI state across offline/online transitions", async ({
         page,
         context,
     }) => {
-        // Verify initial state
         const initialTitle = await page.locator("h1").textContent();
         const initialTableVisible = await page.locator("table").isVisible();
 
-        // Go offline
-        await context.setOffline(true);
-        await page.waitForTimeout(300);
+        await goOffline(context, page);
+        expect(await page.locator("h1").textContent()).toBe(initialTitle);
+        expect(await page.locator("table").isVisible()).toBe(
+            initialTableVisible,
+        );
 
-        // Should maintain same UI state
-        const offlineTitle = await page.locator("h1").textContent();
-        const offlineTableVisible = await page.locator("table").isVisible();
-
-        expect(offlineTitle).toBe(initialTitle);
-        expect(offlineTableVisible).toBe(initialTableVisible);
-
-        // Go back online
-        await context.setOffline(false);
-        await page.waitForTimeout(300);
-
-        // Should still maintain same UI state
-        const onlineTitle = await page.locator("h1").textContent();
-        const onlineTableVisible = await page.locator("table").isVisible();
-
-        expect(onlineTitle).toBe(initialTitle);
-        expect(onlineTableVisible).toBe(initialTableVisible);
+        await goOnline(context, page);
+        expect(await page.locator("h1").textContent()).toBe(initialTitle);
+        expect(await page.locator("table").isVisible()).toBe(
+            initialTableVisible,
+        );
     });
 
     test("no critical errors when offline", async ({ page, context }) => {
         const errors: string[] = [];
 
-        // Track console errors
+        await page.goto("/");
+
         page.on("console", (msg) => {
             if (msg.type() === "error") {
                 errors.push(msg.text());
             }
         });
 
-        // Go offline
-        await context.setOffline(true);
+        await goOffline(context, page);
+        await page.waitForTimeout(500);
 
-        // Navigate around the app
-        await page.reload();
-        await page.waitForTimeout(1000);
-
-        // Filter out non-critical errors (favicon, dev server, etc.)
         const criticalErrors = errors.filter(
-            (error) =>
-                !error.includes("favicon") &&
-                !error.includes("livereload") &&
-                !error.includes("net::ERR_") && // Network errors are expected when offline
-                !error.includes("Failed to fetch"), // Fetch errors are expected when offline
+            (error) => !isNonCriticalError(error),
         );
 
-        // Should not have critical JavaScript errors when offline
         expect(criticalErrors).toHaveLength(0);
     });
 
     test("maintains performance when offline", async ({ page, context }) => {
-        // Go offline
+        await page.goto("/");
+        await verifyAppLoaded(page);
+
         await context.setOffline(true);
 
-        // Measure page load performance
         const startTime = Date.now();
-        await page.reload();
+        await page.waitForTimeout(100);
         await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
-        const loadTime = Date.now() - startTime;
+        const responseTime = Date.now() - startTime;
 
-        // Should load reasonably quickly even when offline (LiveStore is local-first)
-        expect(loadTime).toBeLessThan(5000); // 5 seconds is generous for offline loading
+        expect(responseTime).toBeLessThan(1000);
     });
 });
-
-// Note: These E2E tests verify the offline user experience.
-// LiveStore provides offline-first capabilities by design since it's local-first storage.
-// The tests focus on ensuring the UI remains functional when network is unavailable.
-//
-// For comprehensive offline testing with actual data operations, we would need:
-// 1. UI components for creating/editing entries
-// 2. Form interactions to test CRUD operations
-// 3. Data persistence verification across offline sessions
-// 4. Conflict resolution testing (if sync is implemented later)

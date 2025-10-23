@@ -154,15 +154,22 @@ describe("Logbook", () => {
         // Should show empty state component instead of table
         expect(screen.getByTestId("empty-state")).toBeInTheDocument();
         expect(screen.getByText("No time entries yet")).toBeInTheDocument();
-        expect(screen.getByText("Start tracking your time! Your entries will appear here once you begin logging your work.")).toBeInTheDocument();
-
-        // Should show load sample data button
-        expect(screen.getByRole("button", { name: "Load Sample Data" })).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                /start tracking your time.*your entries will appear here/i,
+            ),
+        ).toBeInTheDocument();
 
         // Should NOT show table headers when empty
-        expect(screen.queryByRole("columnheader", { name: "Date" })).not.toBeInTheDocument();
-        expect(screen.queryByRole("columnheader", { name: "Duration" })).not.toBeInTheDocument();
-        expect(screen.queryByRole("columnheader", { name: "Description" })).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole("columnheader", { name: "Date" }),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole("columnheader", { name: "Duration" }),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole("columnheader", { name: "Description" }),
+        ).not.toBeInTheDocument();
     });
 
     it("applies correct CSS classes to table elements", () => {

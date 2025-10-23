@@ -1,12 +1,33 @@
-import { Paper, Text, Title, Stack } from "@mantine/core";
-import { IconDatabase } from "@tabler/icons-react";
+import { useState } from "react";
+import { Paper, Text, Button, Title, Stack, Alert } from "@mantine/core";
+import { IconDatabase, IconAlertCircle } from "@tabler/icons-react";
 import styles from "./empty-state.module.css";
 
-/**
- * Component displayed when the logbook has no time entries
- * Provides a friendly onboarding experience for new users
- */
-export function EmptyState() {
+interface EmptyStateProps {
+    onLoadSampleData: () => Promise<void>;
+}
+
+export function EmptyState({ onLoadSampleData }: EmptyStateProps) {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleLoadSampleData = async () => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            await onLoadSampleData();
+        } catch (err) {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "Failed to load sample data. Please try again.",
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <Paper
             shadow="sm"
@@ -33,6 +54,34 @@ export function EmptyState() {
                         once you begin logging your work.
                     </Text>
                 </div>
+
+                <Stack gap="sm" align="center">
+                    <Text size="sm" c="dimmed" ta="center">
+                        Want to see what it looks like with data?
+                    </Text>
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleLoadSampleData}
+                        loading={isLoading}
+                        disabled={isLoading}
+                        leftSection={<IconDatabase size={16} />}
+                    >
+                        {isLoading ? "Loading..." : "Load Sample Data"}
+                    </Button>
+
+                    {error && (
+                        <Alert
+                            icon={<IconAlertCircle size={16} />}
+                            color="red"
+                            variant="light"
+                            className={styles.error}
+                        >
+                            {error}
+                        </Alert>
+                    )}
+                </Stack>
             </Stack>
         </Paper>
     );

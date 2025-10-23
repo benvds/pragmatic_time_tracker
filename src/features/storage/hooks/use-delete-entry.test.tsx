@@ -28,8 +28,10 @@ describe("useDeleteEntry", () => {
 
         expect(mockCommit).toHaveBeenCalled();
         const call = mockCommit.mock.calls[0];
-        expect(call[0].payload.id).toBe("test-id");
-        expect(call[0].payload.deletedAt).toBeInstanceOf(Date);
+        const event = call[0];
+        expect(event.name).toBe("v1.EntryDeleted");
+        expect(event.args.id).toBe("test-id");
+        expect(event.args.deletedAt).toBeInstanceOf(Date);
     });
 
     it("should handle errors gracefully", async () => {
@@ -37,11 +39,11 @@ describe("useDeleteEntry", () => {
 
         const { result } = renderHook(() => useDeleteEntry());
 
-        // Should not throw
-        await act(async () => {
-            await result.current("test-id");
-        });
-
-        expect(true).toBe(true);
+        // Should throw the error
+        await expect(
+            act(async () => {
+                await result.current("test-id");
+            }),
+        ).rejects.toThrow("Storage error");
     });
 });

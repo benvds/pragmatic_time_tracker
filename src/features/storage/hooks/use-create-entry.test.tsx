@@ -46,8 +46,13 @@ describe("useCreateEntry", () => {
 
         // Verify the event payload includes an id
         const call = mockCommit.mock.calls[0];
-        expect(call[0].payload.id).toBeDefined();
-        expect(typeof call[0].payload.id).toBe("string");
+        const event = call[0];
+        expect(event.name).toBe("v1.EntryCreated");
+        expect(event.args.id).toBeDefined();
+        expect(typeof event.args.id).toBe("string");
+        expect(event.args.id).toMatch(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+        );
     });
 
     it("should handle validation errors", async () => {

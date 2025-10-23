@@ -4,7 +4,7 @@ test.describe("First Run Experience", () => {
     test.beforeEach(async ({ page, context }) => {
         // Clear all storage to simulate first run
         await context.clearCookies();
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Clear all storage types including OPFS
         await page.evaluate(async () => {
@@ -34,11 +34,10 @@ test.describe("First Run Experience", () => {
 
         // Reload to get fresh state
         await page.reload();
-        await page.waitForLoadState("networkidle");
     });
 
     test("shows empty state on first visit", async ({ page }) => {
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Wait for app to load
         await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
@@ -51,7 +50,7 @@ test.describe("First Run Experience", () => {
     });
 
     test("displays welcome message for new users", async ({ page }) => {
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Should have friendly welcome content
         await expect(page.locator("text=No time entries yet")).toBeVisible();
@@ -67,7 +66,7 @@ test.describe("First Run Experience", () => {
     });
 
     test("provides option to load sample data", async ({ page }) => {
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Should offer sample data option
         const loadSampleButton = page.locator("button", {
@@ -78,7 +77,7 @@ test.describe("First Run Experience", () => {
     });
 
     test("sample data button is functional", async ({ page }) => {
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Click load sample data button
         const loadSampleButton = page.locator("button", {
@@ -98,7 +97,7 @@ test.describe("First Run Experience", () => {
     });
 
     test("maintains table structure even when empty", async ({ page }) => {
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Table headers should still be visible
         await expect(page.locator("text=Date")).toBeVisible();
@@ -114,7 +113,7 @@ test.describe("First Run Experience", () => {
     test("has proper responsive design on mobile", async ({ page }) => {
         // Set mobile viewport
         await page.setViewportSize({ width: 375, height: 667 });
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Should still be functional on mobile
         await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
@@ -131,7 +130,7 @@ test.describe("First Run Experience", () => {
         // Go offline
         await context.setOffline(true);
 
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Should still load and show empty state
         await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
@@ -147,7 +146,7 @@ test.describe("First Run Experience", () => {
     test("preserves app functionality after first interaction", async ({
         page,
     }) => {
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Interact with the empty state
         const loadSampleButton = page.locator("button", {
@@ -184,7 +183,7 @@ test.describe("First Run Experience", () => {
     });
 
     test("provides clear visual hierarchy", async ({ page }) => {
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Main title should be prominent
         const title = page.locator("h1");
@@ -200,7 +199,7 @@ test.describe("First Run Experience", () => {
     });
 
     test("works consistently across browser reloads", async ({ page }) => {
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Verify initial empty state
         await expect(page.locator("text=No time entries yet")).toBeVisible();

@@ -68,7 +68,7 @@ export async function seedTestData(store: Store): Promise<SeedResult> {
 
         // Soft delete all existing entries if any exist
         if (activeEntries.length > 0) {
-            const deleteEvents = activeEntries.map((entry) =>
+            const deleteEvents = activeEntries.map((entry: { id: string }) =>
                 events.entryDeleted({
                     id: entry.id,
                     deletedAt: new Date(),
@@ -97,18 +97,42 @@ export async function seedTestData(store: Store): Promise<SeedResult> {
 
 /**
  * Seed onboarding data for new users (optional sample data)
+ * Clears existing onboarding entries before seeding to allow re-seeding
  *
  * @param store - LiveStore instance
  * @returns Result of seeding operation
  */
 export async function seedOnboardingData(store: Store): Promise<SeedResult> {
     try {
+        // Get all existing onboarding entries (they have IDs starting with "onboard-")
+        const allEntries = await store.query(queryDb(tables.entries));
+        const onboardingEntries = allEntries.filter((entry: { id: string }) =>
+            entry.id.startsWith("onboard-"),
+        );
+
+        let clearedCount = 0;
+
+        // Delete existing onboarding entries to allow re-seeding
+        if (onboardingEntries.length > 0) {
+            const deleteEvents = onboardingEntries.map(
+                (entry: { id: string }) =>
+                    events.entryDeleted({
+                        id: entry.id,
+                        deletedAt: new Date(),
+                    }),
+            );
+
+            await store.commit(...deleteEvents);
+            clearedCount = onboardingEntries.length;
+        }
+
         // Commit onboarding seed events
         await store.commit(...onboardingSeedData);
 
         return {
             success: true,
             seeded: onboardingSeedData.length,
+            cleared: clearedCount,
         };
     } catch (error) {
         return {
@@ -139,7 +163,7 @@ export async function clearAllData(store: Store): Promise<SeedResult> {
         }
 
         // Create delete events for all active entries
-        const deleteEvents = activeEntries.map((entry) =>
+        const deleteEvents = activeEntries.map((entry: { id: string }) =>
             events.entryDeleted({
                 id: entry.id,
                 deletedAt: new Date(),
@@ -190,16 +214,16 @@ export async function getDataStats(store: Store): Promise<{
 }> {
     try {
         const [totalEntries, activeEntries] = await Promise.all([
-            store.query(queryDb(tables.entries.select("id"))),
-            store.query(
-                queryDb(tables.entries.where({ deletedAt: null }).select("id")),
-            ),
+            store.query(queryDb(tables.entries)),
+            store.query(queryDb(tables.entries.where({ deletedAt: null }))),
         ]);
 
         return {
-            total: totalEntries.length,
-            active: activeEntries.length,
-            deleted: totalEntries.length - activeEntries.length,
+            total: (totalEntries as unknown[]).length,
+            active: (activeEntries as unknown[]).length,
+            deleted:
+                (totalEntries as unknown[]).length -
+                (activeEntries as unknown[]).length,
         };
     } catch (error) {
         console.error("Error getting data stats:", error);

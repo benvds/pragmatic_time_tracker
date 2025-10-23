@@ -10,7 +10,7 @@ import { test, expect } from "@playwright/test";
 
 test.describe("Storage Performance", () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
     });
 
     test("should load 1000+ entries in <2000ms", async ({ page }) => {
@@ -141,7 +141,7 @@ test.describe("Storage Performance", () => {
 
 test.describe("Query Performance", () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
         await page.waitForSelector('[data-testid="logbook-table"]', {
             timeout: 5000,
         });

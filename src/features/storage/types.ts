@@ -12,12 +12,12 @@ export type LogEntry = {
  * Validation error for storage operations
  */
 export class ValidationError extends Error {
-    constructor(
-        message: string,
-        public field?: string,
-    ) {
+    field?: string;
+
+    constructor(message: string, field?: string) {
         super(message);
         this.name = "ValidationError";
+        this.field = field;
     }
 }
 

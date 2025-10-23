@@ -1,65 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render } from "@testing-library/react";
-import { LiveStoreProvider } from "@livestore/react";
-import { makePersistedAdapter } from "@livestore/adapter-web";
-import { unstable_batchedUpdates } from "react-dom";
+import { describe, it, expect, vi } from "vitest";
 
 import { seedDevelopmentData, seedTestData, clearAllData } from "./lib/seed";
 import { developmentSeedData, testSeedData } from "./lib/seed-data";
-import { useEntries } from "./hooks/use-entries";
-
-// Mock worker imports
-const mockWorker = {} as Worker;
-const mockSharedWorker = {} as SharedWorker;
-
-vi.mock("./livestore.worker?worker", () => ({
-    default: mockWorker,
-}));
-
-vi.mock("@livestore/adapter-web/shared-worker?sharedworker", () => ({
-    default: mockSharedWorker,
-}));
-
-// Create test adapter
-const createTestAdapter = () => {
-    return makePersistedAdapter({
-        storage: { type: "opfs" },
-        worker: mockWorker,
-        sharedWorker: mockSharedWorker,
-    });
-};
-
-// Test component to verify seeded data
-function TestEntriesComponent() {
-    const entries = useEntries();
-
-    return (
-        <div>
-            <div data-testid="entries-count">{entries.length}</div>
-            {entries.map((entry) => (
-                <div key={entry.id} data-testid={`entry-${entry.id}`}>
-                    {entry.description}
-                </div>
-            ))}
-        </div>
-    );
-}
 
 describe("Seed Integration Tests", () => {
-    const renderWithProvider = (component: React.ReactElement) => {
-        const adapter = createTestAdapter();
-        return render(
-            <LiveStoreProvider
-                adapter={adapter}
-                batchUpdates={unstable_batchedUpdates}
-            >
-                {component}
-            </LiveStoreProvider>,
-        );
-    };
-
-    // Note: These are simplified integration tests since we're mocking the LiveStore worker
-    // In a real environment, these would test actual storage operations
+    // Note: These are simplified integration tests using mocked stores
+    // E2E tests cover actual storage operations
 
     describe("Development Data Seeding", () => {
         it("seeds data when store is empty", async () => {
@@ -102,11 +48,11 @@ describe("Seed Integration Tests", () => {
 
             // Verify all events are properly structured
             committedEvents.forEach((event: any) => {
-                expect(event).toHaveProperty("type", "v1.EntryCreated");
-                expect(event.data).toHaveProperty("id");
-                expect(event.data).toHaveProperty("date");
-                expect(event.data).toHaveProperty("minutes");
-                expect(event.data).toHaveProperty("description");
+                expect(event).toHaveProperty("name", "v1.EntryCreated");
+                expect(event.args).toHaveProperty("id");
+                expect(event.args).toHaveProperty("date");
+                expect(event.args).toHaveProperty("minutes");
+                expect(event.args).toHaveProperty("description");
             });
         });
     });
@@ -162,10 +108,10 @@ describe("Seed Integration Tests", () => {
 
             // Test data should include both created and deleted events
             const createdEvents = committedEvents.filter(
-                (e: any) => e.type === "v1.EntryCreated",
+                (e: any) => e.name === "v1.EntryCreated",
             );
             const deletedEvents = committedEvents.filter(
-                (e: any) => e.type === "v1.EntryDeleted",
+                (e: any) => e.name === "v1.EntryDeleted",
             );
 
             expect(createdEvents.length).toBeGreaterThan(0);
@@ -173,10 +119,10 @@ describe("Seed Integration Tests", () => {
 
             // Verify created events have edge cases
             const hasMinimalDuration = createdEvents.some(
-                (e: any) => e.data.minutes === 1,
+                (e: any) => e.args.minutes === 1,
             );
             const hasEmptyDescription = createdEvents.some(
-                (e: any) => e.data.description === "",
+                (e: any) => e.args.description === "",
             );
 
             expect(hasMinimalDuration).toBe(true);
@@ -207,55 +153,32 @@ describe("Seed Integration Tests", () => {
             expect(deleteEvents).toHaveLength(3);
 
             deleteEvents.forEach((event: any, index: number) => {
-                expect(event.type).toBe("v1.EntryDeleted");
-                expect(event.data.id).toBe(activeEntries[index].id);
-                expect(event.data.deletedAt).toBeInstanceOf(Date);
+                expect(event.name).toBe("v1.EntryDeleted");
+                expect(event.args.id).toBe(activeEntries[index].id);
+                expect(event.args.deletedAt).toBeInstanceOf(Date);
             });
-        });
-    });
-
-    describe("Component Integration", () => {
-        it("renders with mocked LiveStore provider", () => {
-            // This test verifies the test setup works
-            const { container } = renderWithProvider(<TestEntriesComponent />);
-
-            expect(container).toBeInTheDocument();
-            // With mocked store, entries count should be 0
-            expect(
-                container.querySelector('[data-testid="entries-count"]'),
-            ).toHaveTextContent("0");
-        });
-
-        it("component structure supports seeded data display", () => {
-            // Verify component can handle entry data structure
-            const { container } = renderWithProvider(<TestEntriesComponent />);
-
-            // Component should be ready to display entries
-            expect(
-                container.querySelector('[data-testid="entries-count"]'),
-            ).toBeInTheDocument();
         });
     });
 
     describe("Seed Data Validation", () => {
         it("development seed data has required properties", () => {
             developmentSeedData.forEach((event) => {
-                expect(event.type).toBe("v1.EntryCreated");
-                expect(event.data.id).toMatch(/^dev-\d+$/);
-                expect(event.data.date).toBeInstanceOf(Date);
-                expect(typeof event.data.minutes).toBe("number");
-                expect(typeof event.data.description).toBe("string");
-                expect(event.data.minutes).toBeGreaterThan(0);
-                expect(event.data.description.length).toBeGreaterThan(0);
+                expect(event.name).toBe("v1.EntryCreated");
+                expect(event.args.id).toMatch(/^dev-\d+$/);
+                expect(event.args.date).toBeInstanceOf(Date);
+                expect(typeof event.args.minutes).toBe("number");
+                expect(typeof event.args.description).toBe("string");
+                expect(event.args.minutes).toBeGreaterThan(0);
+                expect(event.args.description.length).toBeGreaterThan(0);
             });
         });
 
         it("test seed data includes edge cases and deletions", () => {
             const createdEvents = testSeedData.filter(
-                (e) => e.type === "v1.EntryCreated",
+                (e) => e.name === "v1.EntryCreated",
             );
             const deletedEvents = testSeedData.filter(
-                (e) => e.type === "v1.EntryDeleted",
+                (e) => e.name === "v1.EntryDeleted",
             );
 
             expect(createdEvents.length).toBeGreaterThan(0);
@@ -263,13 +186,13 @@ describe("Seed Integration Tests", () => {
 
             // Verify edge cases exist
             const hasMinimalDuration = createdEvents.some(
-                (e) => e.data.minutes === 1,
+                (e) => e.args.minutes === 1,
             );
             const hasEmptyDescription = createdEvents.some(
-                (e) => e.data.description === "",
+                (e) => e.args.description === "",
             );
             const hasMaxDuration = createdEvents.some(
-                (e) => e.data.minutes >= 1440,
+                (e) => e.args.minutes >= 1440,
             );
 
             expect(hasMinimalDuration).toBe(true);

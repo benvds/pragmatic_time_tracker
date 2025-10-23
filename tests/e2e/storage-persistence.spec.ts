@@ -4,7 +4,7 @@ test.describe("Storage Persistence", () => {
     test.beforeEach(async ({ page, context }) => {
         // Clear all storage to get clean state
         await context.clearCookies();
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Clear all storage types including OPFS
         await page.evaluate(async () => {
@@ -32,11 +32,10 @@ test.describe("Storage Persistence", () => {
         });
 
         await page.reload();
-        await page.waitForLoadState("networkidle");
     });
 
     test("persists time entry across page reloads", async ({ page }) => {
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Wait for app to load
         await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
@@ -74,7 +73,7 @@ test.describe("Storage Persistence", () => {
     });
 
     test("handles empty state correctly", async ({ page }) => {
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Should show empty state message when no entries exist
         await expect(page.locator("text=No time entries yet")).toBeVisible();
@@ -89,7 +88,7 @@ test.describe("Storage Persistence", () => {
     });
 
     test("displays logbook structure correctly", async ({ page }) => {
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Check main components are present
         await expect(page.locator("h1")).toContainText("Time Tracker Logbook");
@@ -108,7 +107,7 @@ test.describe("Storage Persistence", () => {
     });
 
     test("has correct page title and meta", async ({ page }) => {
-        await page.goto("http://localhost:5173");
+        await page.goto("/");
 
         // Check page title
         await expect(page).toHaveTitle(/Pragmatic Time Tracker/);

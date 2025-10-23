@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useUpdateEntry } from "./use-update-entry";
 
@@ -13,6 +13,9 @@ vi.mock("@livestore/react", () => ({
 }));
 
 describe("useUpdateEntry", () => {
+    beforeEach(() => {
+        mockCommit.mockClear();
+    });
     it("should return an update function", () => {
         const { result } = renderHook(() => useUpdateEntry());
 
@@ -30,8 +33,10 @@ describe("useUpdateEntry", () => {
 
         expect(mockCommit).toHaveBeenCalled();
         const call = mockCommit.mock.calls[0];
-        expect(call[0].payload.id).toBe("test-id");
-        expect(call[0].payload.minutes).toBe(90);
+        const event = call[0];
+        expect(event.name).toBe("v1.EntryUpdated");
+        expect(event.args.id).toBe("test-id");
+        expect(event.args.minutes).toBe(90);
     });
 
     it("should support updating date", async () => {
@@ -45,7 +50,8 @@ describe("useUpdateEntry", () => {
         });
 
         const call = mockCommit.mock.calls[0];
-        expect(call[0].payload.date).toBeDefined();
+        const event = call[0];
+        expect(event.args.date).toBeDefined();
     });
 
     it("should support updating description", async () => {
@@ -58,7 +64,8 @@ describe("useUpdateEntry", () => {
         });
 
         const call = mockCommit.mock.calls[0];
-        expect(call[0].payload.description).toBe("Updated description");
+        const event = call[0];
+        expect(event.args.description).toBe("Updated description");
     });
 
     it("should handle validation errors", async () => {

@@ -3,7 +3,7 @@ import { events, schema, tables } from "./schema";
 
 describe("Storage Schema", () => {
     describe("Events", () => {
-        it("should create entryCreated event", () => {
+        it("should create entryCreated event with correct structure", () => {
             const event = events.entryCreated({
                 id: "test-id",
                 date: new Date("2025-10-12T10:00:00"),
@@ -12,8 +12,11 @@ describe("Storage Schema", () => {
             });
 
             expect(event).toBeDefined();
-            // LiveStore events are functions that return the event data
-            expect(typeof event).toBe("function");
+            expect(event.name).toBe("v1.EntryCreated");
+            expect(event.args.id).toBe("test-id");
+            expect(event.args.minutes).toBe(60);
+            expect(event.args.description).toBe("Test entry");
+            expect(event.args.date).toBeInstanceOf(Date);
         });
 
         it("should create entryUpdated event with partial data", () => {
@@ -23,7 +26,9 @@ describe("Storage Schema", () => {
             });
 
             expect(event).toBeDefined();
-            expect(typeof event).toBe("function");
+            expect(event.name).toBe("v1.EntryUpdated");
+            expect(event.args.id).toBe("test-id");
+            expect(event.args.minutes).toBe(90);
         });
 
         it("should create entryDeleted event", () => {
@@ -33,7 +38,9 @@ describe("Storage Schema", () => {
             });
 
             expect(event).toBeDefined();
-            expect(typeof event).toBe("function");
+            expect(event.name).toBe("v1.EntryDeleted");
+            expect(event.args.id).toBe("test-id");
+            expect(event.args.deletedAt).toBeInstanceOf(Date);
         });
     });
 

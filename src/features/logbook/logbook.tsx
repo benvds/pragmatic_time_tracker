@@ -1,11 +1,17 @@
 import { Container, Table, Title, Paper, Text, Group } from "@mantine/core";
-import { useEntries } from "@/features/storage";
+import { useStore } from "@livestore/react";
+import { useEntries, seedOnboardingData } from "@/features/storage";
 import { OfflineIndicator } from "./components/offline-indicator";
 import { EmptyState } from "./components/empty-state";
 import styles from "./logbook.module.css";
 
 export const Logbook = () => {
+    const { store } = useStore();
     const entries = useEntries();
+
+    const handleLoadSampleData = async () => {
+        await seedOnboardingData(store);
+    };
 
     // Format duration from minutes to display string
     const formatDuration = (minutes: number): string => {
@@ -40,9 +46,14 @@ export const Logbook = () => {
                 </Group>
 
                 {entries.length === 0 ? (
-                    <EmptyState />
+                    <EmptyState onLoadSampleData={handleLoadSampleData} />
                 ) : (
-                    <Table striped highlightOnHover className={styles.table} data-testid="logbook-table">
+                    <Table
+                        striped
+                        highlightOnHover
+                        className={styles.table}
+                        data-testid="logbook-table"
+                    >
                         <Table.Thead>
                             <Table.Tr className={styles.headerRow}>
                                 <Table.Th className={styles.dateHeader}>
@@ -58,9 +69,15 @@ export const Logbook = () => {
                         </Table.Thead>
                         <Table.Tbody>
                             {entries.map((entry) => (
-                                <Table.Tr key={entry.id} className={styles.entryRow}>
+                                <Table.Tr
+                                    key={entry.id}
+                                    className={styles.entryRow}
+                                >
                                     <Table.Td className={styles.dateCell}>
-                                        <Text size="sm" className={styles.dateText}>
+                                        <Text
+                                            size="sm"
+                                            className={styles.dateText}
+                                        >
                                             {formatDate(entry.date)}
                                         </Text>
                                     </Table.Td>
@@ -72,7 +89,9 @@ export const Logbook = () => {
                                             {formatDuration(entry.minutes)}
                                         </Text>
                                     </Table.Td>
-                                    <Table.Td className={styles.descriptionCell}>
+                                    <Table.Td
+                                        className={styles.descriptionCell}
+                                    >
                                         <Text
                                             size="sm"
                                             className={styles.descriptionText}

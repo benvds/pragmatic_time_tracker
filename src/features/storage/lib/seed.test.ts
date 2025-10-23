@@ -113,12 +113,12 @@ describe("Seed Utilities", () => {
             // First commit: delete existing entries
             const firstCommitCall = mockStore.commit.mock.calls[0];
             expect(firstCommitCall[0]).toMatchObject({
-                type: "v1.EntryDeleted",
-                data: { id: "existing-1" },
+                name: "v1.EntryDeleted",
+                args: { id: "existing-1" },
             });
             expect(firstCommitCall[1]).toMatchObject({
-                type: "v1.EntryDeleted",
-                data: { id: "existing-2" },
+                name: "v1.EntryDeleted",
+                args: { id: "existing-2" },
             });
 
             // Second commit: add test data
@@ -191,9 +191,9 @@ describe("Seed Utilities", () => {
             expect(commitCall).toHaveLength(3);
 
             commitCall.forEach((event: any, index: number) => {
-                expect(event.type).toBe("v1.EntryDeleted");
-                expect(event.data.id).toBe(activeEntries[index].id);
-                expect(event.data.deletedAt).toBeInstanceOf(Date);
+                expect(event.name).toBe("v1.EntryDeleted");
+                expect(event.args.id).toBe(activeEntries[index].id);
+                expect(event.args.deletedAt).toBeInstanceOf(Date);
             });
 
             expect(result).toEqual({ success: true, cleared: 3 });
@@ -247,8 +247,8 @@ describe("Seed Utilities", () => {
 
             const deleteEvent = mockStore.commit.mock.calls[0][0];
             expect(deleteEvent).toMatchObject({
-                type: "v1.EntryDeleted",
-                data: {
+                name: "v1.EntryDeleted",
+                args: {
                     id: "test-1",
                     deletedAt: expect.any(Date),
                 },

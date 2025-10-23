@@ -9,15 +9,15 @@ describe("Seed Data", () => {
         });
 
         it("contains events with required fields", () => {
-            developmentSeedData.forEach((event, index) => {
+            developmentSeedData.forEach((event) => {
                 expect(event).toBeDefined();
-                expect(event.type).toBeDefined();
-                expect(event.data).toBeDefined();
+                expect(event.name).toBeDefined();
+                expect(event.args).toBeDefined();
 
                 // Check that it's an entryCreated event
-                expect(event.type).toBe("v1.EntryCreated");
+                expect(event.name).toBe("v1.EntryCreated");
 
-                const data = event.data;
+                const data = event.args;
                 expect(data.id).toBeDefined();
                 expect(typeof data.id).toBe("string");
                 expect(data.id.length).toBeGreaterThan(0);
@@ -30,12 +30,12 @@ describe("Seed Data", () => {
                 expect(data.minutes).toBeLessThanOrEqual(1440); // Max 24 hours
 
                 expect(typeof data.description).toBe("string");
-            }, `Development seed entry ${index}`);
+            });
         });
 
         it("has realistic varied durations", () => {
             const durations = developmentSeedData.map(
-                (event) => event.data.minutes,
+                (event) => event.args.minutes,
             );
 
             // Should have variety (not all the same)
@@ -50,12 +50,12 @@ describe("Seed Data", () => {
         });
 
         it("has deterministic IDs starting with 'dev-'", () => {
-            developmentSeedData.forEach((event, index) => {
-                expect(event.data.id).toMatch(/^dev-\d+$/);
+            developmentSeedData.forEach((event) => {
+                expect(event.args.id).toMatch(/^dev-\d+$/);
             });
 
             // IDs should be unique
-            const ids = developmentSeedData.map((event) => event.data.id);
+            const ids = developmentSeedData.map((event) => event.args.id);
             const uniqueIds = new Set(ids);
             expect(uniqueIds.size).toBe(ids.length);
         });
@@ -67,7 +67,7 @@ describe("Seed Data", () => {
             );
 
             developmentSeedData.forEach((event) => {
-                const eventDate = event.data.date;
+                const eventDate = event.args.date;
                 expect(eventDate.getTime()).toBeGreaterThanOrEqual(
                     sevenDaysAgo.getTime(),
                 );
@@ -79,7 +79,7 @@ describe("Seed Data", () => {
 
         it("has realistic descriptions", () => {
             developmentSeedData.forEach((event) => {
-                const description = event.data.description;
+                const description = event.args.description;
                 expect(description.length).toBeGreaterThan(0);
                 expect(description.length).toBeLessThan(200); // Reasonable length
 
@@ -101,38 +101,47 @@ describe("Seed Data", () => {
 
             // Should have at least one event with minimal duration
             const hasMinimalDuration = events.some(
-                (event) => event.data.minutes === 1,
+                (event) =>
+                    event.name === "v1.EntryCreated" &&
+                    "minutes" in event.args &&
+                    event.args.minutes === 1,
             );
             expect(hasMinimalDuration).toBe(true);
 
             // Should have at least one event with empty description
             const hasEmptyDescription = events.some(
-                (event) => event.data.description === "",
+                (event) =>
+                    event.name === "v1.EntryCreated" &&
+                    "description" in event.args &&
+                    event.args.description === "",
             );
             expect(hasEmptyDescription).toBe(true);
 
             // Should have at least one event with maximum duration
             const hasMaxDuration = events.some(
-                (event) => event.data.minutes >= 1440,
+                (event) =>
+                    event.name === "v1.EntryCreated" &&
+                    "minutes" in event.args &&
+                    event.args.minutes >= 1440,
             );
             expect(hasMaxDuration).toBe(true);
         });
 
         it("includes deleted entries (entryDeleted events)", () => {
             const deletedEvents = testSeedData.filter(
-                (event) => event.type === "v1.EntryDeleted",
+                (event) => event.name === "v1.EntryDeleted",
             );
             expect(deletedEvents.length).toBeGreaterThan(0);
 
             deletedEvents.forEach((event) => {
-                expect(event.data.id).toBeDefined();
-                expect(event.data.deletedAt).toBeInstanceOf(Date);
+                expect(event.args.id).toBeDefined();
+                expect(event.args.deletedAt).toBeInstanceOf(Date);
             });
         });
 
         it("has deterministic IDs for testing", () => {
             testSeedData.forEach((event) => {
-                const id = event.data.id;
+                const id = event.args.id;
                 // Should have predictable test IDs
                 expect(id).toMatch(/^test-(edge|deleted|max)-\w+$/);
             });
@@ -140,8 +149,8 @@ describe("Seed Data", () => {
 
         it("includes boundary date cases", () => {
             const dates = testSeedData
-                .filter((event) => event.type === "v1.EntryCreated")
-                .map((event) => event.data.date);
+                .filter((event) => event.name === "v1.EntryCreated")
+                .map((event) => event.args.date);
 
             // Should have variety in dates for testing
             const uniqueDates = new Set(dates.map((d) => d.toDateString()));
@@ -149,18 +158,18 @@ describe("Seed Data", () => {
         });
 
         it("has events with required fields", () => {
-            testSeedData.forEach((event, index) => {
-                expect(event.type).toBeDefined();
-                expect(event.data).toBeDefined();
+            testSeedData.forEach((event) => {
+                expect(event.name).toBeDefined();
+                expect(event.args).toBeDefined();
 
-                if (event.type === "v1.EntryCreated") {
-                    const data = event.data;
+                if (event.name === "v1.EntryCreated") {
+                    const data = event.args;
                     expect(typeof data.id).toBe("string");
                     expect(data.date).toBeInstanceOf(Date);
                     expect(typeof data.minutes).toBe("number");
                     expect(typeof data.description).toBe("string");
-                } else if (event.type === "v1.EntryDeleted") {
-                    const data = event.data;
+                } else if (event.name === "v1.EntryDeleted") {
+                    const data = event.args;
                     expect(typeof data.id).toBe("string");
                     expect(data.deletedAt).toBeInstanceOf(Date);
                 }
@@ -177,13 +186,17 @@ describe("Seed Data", () => {
                     "v1.EntryCreated",
                     "v1.EntryUpdated",
                     "v1.EntryDeleted",
-                ]).toContain(event.type);
+                ]).toContain(event.name);
             });
         });
 
         it("no duplicate IDs across datasets", () => {
-            const devIds = developmentSeedData.map((event) => event.data.id);
-            const testIds = testSeedData.map((event) => event.data.id);
+            const devIds = developmentSeedData
+                .filter((event) => event.name === "v1.EntryCreated")
+                .map((event) => event.args.id);
+            const testIds = testSeedData
+                .filter((event) => event.name === "v1.EntryCreated")
+                .map((event) => event.args.id);
 
             const allIds = [...devIds, ...testIds];
             const uniqueIds = new Set(allIds);
