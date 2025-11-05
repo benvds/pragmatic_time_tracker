@@ -9,17 +9,13 @@ import { events } from "../schema";
 export function useCreateEntry() {
     const { store } = useStore();
 
-    return async (data: {
-        date: Date;
-        minutes: number;
-        description: string;
-    }) => {
+    return (data: { date: Date; minutes: number; description: string }) => {
         try {
             // Generate unique ID
             const id = crypto.randomUUID();
 
             // Commit entryCreated event
-            await store.commit(
+            store.commit(
                 events.entryCreated({
                     id,
                     date: data.date,

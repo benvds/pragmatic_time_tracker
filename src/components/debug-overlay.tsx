@@ -16,7 +16,7 @@ import {
     IconX,
 } from "@tabler/icons-react";
 import { useStore } from "@livestore/react";
-import { seedOnboardingData, clearAllData } from "@/features/storage";
+import { seedOnboardingData } from "@/features/storage";
 import styles from "./debug-overlay.module.css";
 
 /**
@@ -37,12 +37,12 @@ export function DebugOverlay() {
         return null;
     }
 
-    const handleLoadSampleData = async () => {
+    const handleLoadSampleData = () => {
         setIsLoading(true);
         setMessage(null);
 
         try {
-            await seedOnboardingData(store);
+            seedOnboardingData(store);
             setMessage({
                 type: "success",
                 text: "Sample data loaded successfully",
@@ -60,12 +60,15 @@ export function DebugOverlay() {
         }
     };
 
-    const handleClearData = async () => {
+    const handleClearData = () => {
         setIsLoading(true);
         setMessage(null);
 
         try {
-            await clearAllData(store);
+            if (!__debugLiveStore?.default?._dev) {
+                throw new Error("LiveStore debug helpers not available");
+            }
+            __debugLiveStore.default._dev.hardReset();
             setMessage({
                 type: "success",
                 text: "All data cleared successfully",

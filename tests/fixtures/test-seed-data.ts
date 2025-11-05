@@ -24,9 +24,9 @@ export { testSeedData };
  * ```typescript
  * import { setupTestData } from "@/tests/fixtures/test-seed-data";
  *
- * test("my test", async () => {
+ * test("my test", () => {
  *   const store = createTestStore();
- *   await setupTestData(store);
+ *   setupTestData(store);
  *   // ... test with seeded data
  * });
  * ```
@@ -34,8 +34,8 @@ export { testSeedData };
  * @param store - LiveStore instance
  * @returns Result of seeding operation
  */
-export async function setupTestData(store: Store): Promise<SeedResult> {
-    return await seedTestData(store);
+export function setupTestData(store: Store): SeedResult {
+    return seedTestData(store);
 }
 
 /**
@@ -45,16 +45,16 @@ export async function setupTestData(store: Store): Promise<SeedResult> {
  * ```typescript
  * import { clearTestData } from "@/tests/fixtures/test-seed-data";
  *
- * afterEach(async () => {
- *   await clearTestData(store);
+ * afterEach(() => {
+ *   clearTestData(store);
  * });
  * ```
  *
  * @param store - LiveStore instance
  * @returns Result of clear operation
  */
-export async function clearTestData(store: Store): Promise<SeedResult> {
-    return await clearAllData(store);
+export function clearTestData(store: Store): SeedResult {
+    return clearAllData(store);
 }
 
 /**
@@ -135,9 +135,9 @@ export function getEdgeCaseEntries() {
  * @param store - LiveStore instance
  * @returns True if test data is properly seeded
  */
-export async function verifyTestData(store: Store): Promise<boolean> {
+export function verifyTestData(store: Store): boolean {
     try {
-        const stats = await getDataStats(store);
+        const stats = getDataStats(store);
         const expectedCounts = getTestDataCounts();
 
         // Verify we have the expected number of active entries
@@ -157,14 +157,14 @@ export async function verifyTestData(store: Store): Promise<boolean> {
  * @param store - LiveStore instance
  * @returns Result of setup operation
  */
-export async function createTestEnvironment(store: Store): Promise<{
+export function createTestEnvironment(store: Store): {
     success: boolean;
     stats?: { active: number; deleted: number; total: number };
     error?: string;
-}> {
+} {
     try {
         // Clear existing data and seed test data
-        const seedResult = await setupTestData(store);
+        const seedResult = setupTestData(store);
 
         if (!seedResult.success) {
             return {
@@ -174,7 +174,7 @@ export async function createTestEnvironment(store: Store): Promise<{
         }
 
         // Get final stats
-        const stats = await getDataStats(store);
+        const stats = getDataStats(store);
 
         return {
             success: true,
@@ -193,26 +193,26 @@ export async function createTestEnvironment(store: Store): Promise<{
  *
  * ```typescript
  * // Setup test data before tests
- * beforeEach(async () => {
- *   await createTestEnvironment(store);
+ * beforeEach(() => {
+ *   createTestEnvironment(store);
  * });
  *
  * // Test with specific edge cases
- * test("handles minimal duration", async () => {
+ * test("handles minimal duration", () => {
  *   const edgeCases = getEdgeCaseEntries();
  *   expect(edgeCases.minimalDuration?.data.minutes).toBe(1);
  * });
  *
  * // Verify expected counts
- * test("has correct entry counts", async () => {
+ * test("has correct entry counts", () => {
  *   const counts = getTestDataCounts();
- *   const stats = await getDataStats(store);
+ *   const stats = getDataStats(store);
  *   expect(stats.active).toBe(counts.expectedActive);
  * });
  *
  * // Clean up after tests
- * afterEach(async () => {
- *   await clearTestData(store);
+ * afterEach(() => {
+ *   clearTestData(store);
  * });
  * ```
  */

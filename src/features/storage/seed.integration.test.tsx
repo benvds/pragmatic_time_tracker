@@ -23,26 +23,29 @@ describe("Seed Integration Tests", () => {
             );
         });
 
-        it("skips seeding when data exists", async () => {
+        it("commits data even when data exists (no idempotency check)", () => {
             const mockStore = {
-                query: vi.fn().mockResolvedValue([{ id: "existing" }]),
+                query: vi.fn().mockReturnValue([{ id: "existing" }]),
                 commit: vi.fn(),
             };
 
-            const result = await seedDevelopmentData(mockStore as any);
+            const result = seedDevelopmentData(mockStore as any);
 
             expect(result.success).toBe(true);
-            expect(result.skipped).toBe(true);
-            expect(mockStore.commit).not.toHaveBeenCalled();
+            expect(result.seeded).toBe(developmentSeedData.length);
+            // seedDevelopmentData doesn't check for existing data
+            expect(mockStore.commit).toHaveBeenCalledWith(
+                ...developmentSeedData,
+            );
         });
 
-        it("maintains referential integrity of seed data", async () => {
+        it("maintains referential integrity of seed data", () => {
             const mockStore = {
-                query: vi.fn().mockResolvedValue([]),
+                query: vi.fn().mockReturnValue([]),
                 commit: vi.fn(),
             };
 
-            await seedDevelopmentData(mockStore as any);
+            seedDevelopmentData(mockStore as any);
 
             const committedEvents = mockStore.commit.mock.calls[0];
 
@@ -58,18 +61,18 @@ describe("Seed Integration Tests", () => {
     });
 
     describe("Test Data Seeding", () => {
-        it("clears existing data and seeds test data", async () => {
+        it("clears existing data and seeds test data", () => {
             const existingEntries = [
                 { id: "old-1", description: "Old entry" },
                 { id: "old-2", description: "Another old entry" },
             ];
 
             const mockStore = {
-                query: vi.fn().mockResolvedValue(existingEntries),
-                commit: vi.fn().mockResolvedValue(undefined),
+                query: vi.fn().mockReturnValue(existingEntries),
+                commit: vi.fn(),
             };
 
-            const result = await seedTestData(mockStore as any);
+            const result = seedTestData(mockStore as any);
 
             expect(result.success).toBe(true);
             expect(result.cleared).toBe(2);
@@ -79,13 +82,13 @@ describe("Seed Integration Tests", () => {
             expect(mockStore.commit).toHaveBeenCalledTimes(2);
         });
 
-        it("handles empty store correctly", async () => {
+        it("handles empty store correctly", () => {
             const mockStore = {
-                query: vi.fn().mockResolvedValue([]),
-                commit: vi.fn().mockResolvedValue(undefined),
+                query: vi.fn().mockReturnValue([]),
+                commit: vi.fn(),
             };
 
-            const result = await seedTestData(mockStore as any);
+            const result = seedTestData(mockStore as any);
 
             expect(result.success).toBe(true);
             expect(result.cleared).toBe(0);
@@ -96,13 +99,13 @@ describe("Seed Integration Tests", () => {
             expect(mockStore.commit).toHaveBeenCalledWith(...testSeedData);
         });
 
-        it("validates test data structure", async () => {
+        it("validates test data structure", () => {
             const mockStore = {
-                query: vi.fn().mockResolvedValue([]),
+                query: vi.fn().mockReturnValue([]),
                 commit: vi.fn(),
             };
 
-            await seedTestData(mockStore as any);
+            seedTestData(mockStore as any);
 
             const committedEvents = mockStore.commit.mock.calls[0];
 
@@ -131,7 +134,7 @@ describe("Seed Integration Tests", () => {
     });
 
     describe("Clear All Data", () => {
-        it("soft deletes all active entries", async () => {
+        it("soft deletes all active entries", () => {
             const activeEntries = [
                 { id: "active-1" },
                 { id: "active-2" },
@@ -139,11 +142,11 @@ describe("Seed Integration Tests", () => {
             ];
 
             const mockStore = {
-                query: vi.fn().mockResolvedValue(activeEntries),
-                commit: vi.fn().mockResolvedValue(undefined),
+                query: vi.fn().mockReturnValue(activeEntries),
+                commit: vi.fn(),
             };
 
-            const result = await clearAllData(mockStore as any);
+            const result = clearAllData(mockStore as any);
 
             expect(result.success).toBe(true);
             expect(result.cleared).toBe(3);

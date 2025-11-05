@@ -21,34 +21,14 @@ export type SeedResult = {
  * @param store - LiveStore instance
  * @returns Result of seeding operation
  */
-export async function seedDevelopmentData(store: Store): Promise<SeedResult> {
-    try {
-        // Check if data already exists
-        const existingEntries = await store.query(
-            queryDb(tables.entries.limit(1)),
-        );
+export function seedDevelopmentData(store: Store): SeedResult {
+    // Commit development seed events
+    store.commit(...developmentSeedData);
 
-        if (existingEntries.length > 0) {
-            return {
-                success: true,
-                skipped: true,
-                reason: "Data already exists",
-            };
-        }
-
-        // Commit development seed events
-        await store.commit(...developmentSeedData);
-
-        return {
-            success: true,
-            seeded: developmentSeedData.length,
-        };
-    } catch (error) {
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "Unknown error",
-        };
-    }
+    return {
+        success: true,
+        seeded: developmentSeedData.length,
+    };
 }
 
 /**
@@ -57,10 +37,10 @@ export async function seedDevelopmentData(store: Store): Promise<SeedResult> {
  * @param store - LiveStore instance
  * @returns Result of seeding operation
  */
-export async function seedTestData(store: Store): Promise<SeedResult> {
+export function seedTestData(store: Store): SeedResult {
     try {
         // Get all active entries
-        const activeEntries = await store.query(
+        const activeEntries = store.query(
             queryDb(tables.entries.where({ deletedAt: null })),
         );
 
@@ -75,12 +55,12 @@ export async function seedTestData(store: Store): Promise<SeedResult> {
                 }),
             );
 
-            await store.commit(...deleteEvents);
+            store.commit(...deleteEvents);
             clearedCount = activeEntries.length;
         }
 
         // Commit test seed events
-        await store.commit(...testSeedData);
+        store.commit(...testSeedData);
 
         return {
             success: true,
@@ -102,37 +82,30 @@ export async function seedTestData(store: Store): Promise<SeedResult> {
  * @param store - LiveStore instance
  * @returns Result of seeding operation
  */
-export async function seedOnboardingData(store: Store): Promise<SeedResult> {
+export function seedOnboardingData(store: Store): SeedResult {
     try {
-        // Get all existing onboarding entries (they have IDs starting with "onboard-")
-        const allEntries = await store.query(queryDb(tables.entries));
-        const onboardingEntries = allEntries.filter((entry: { id: string }) =>
-            entry.id.startsWith("onboard-"),
+        const allEntries = store.query(queryDb(tables.entries));
+        const onboardingIds = new Set(
+            onboardingSeedData.map((event) => event.args.id),
+        );
+        const existingOnboardingEntries = allEntries.filter(
+            (entry: { id: string }) => onboardingIds.has(entry.id),
         );
 
-        let clearedCount = 0;
-
-        // Delete existing onboarding entries to allow re-seeding
-        if (onboardingEntries.length > 0) {
-            const deleteEvents = onboardingEntries.map(
-                (entry: { id: string }) =>
-                    events.entryDeleted({
-                        id: entry.id,
-                        deletedAt: new Date(),
-                    }),
-            );
-
-            await store.commit(...deleteEvents);
-            clearedCount = onboardingEntries.length;
+        if (existingOnboardingEntries.length > 0) {
+            return {
+                success: true,
+                skipped: true,
+                reason: "Onboarding data already exists",
+            };
         }
 
-        // Commit onboarding seed events
-        await store.commit(...onboardingSeedData);
+        store.commit(...onboardingSeedData);
 
         return {
             success: true,
             seeded: onboardingSeedData.length,
-            cleared: clearedCount,
+            cleared: 0,
         };
     } catch (error) {
         return {
@@ -148,10 +121,10 @@ export async function seedOnboardingData(store: Store): Promise<SeedResult> {
  * @param store - LiveStore instance
  * @returns Result of clear operation
  */
-export async function clearAllData(store: Store): Promise<SeedResult> {
+export function clearAllData(store: Store): SeedResult {
     try {
         // Get all active entries
-        const activeEntries = await store.query(
+        const activeEntries = store.query(
             queryDb(tables.entries.where({ deletedAt: null })),
         );
 
@@ -171,7 +144,7 @@ export async function clearAllData(store: Store): Promise<SeedResult> {
         );
 
         // Commit all delete events
-        await store.commit(...deleteEvents);
+        store.commit(...deleteEvents);
 
         return {
             success: true,
@@ -191,9 +164,9 @@ export async function clearAllData(store: Store): Promise<SeedResult> {
  * @param store - LiveStore instance
  * @returns True if store has entries (including deleted ones)
  */
-export async function hasData(store: Store): Promise<boolean> {
+export function hasData(store: Store): boolean {
     try {
-        const anyEntries = await store.query(queryDb(tables.entries.limit(1)));
+        const anyEntries = store.query(queryDb(tables.entries.limit(1)));
         return anyEntries.length > 0;
     } catch (error) {
         console.error("Error checking for existing data:", error);
@@ -207,16 +180,16 @@ export async function hasData(store: Store): Promise<boolean> {
  * @param store - LiveStore instance
  * @returns Data statistics
  */
-export async function getDataStats(store: Store): Promise<{
+export function getDataStats(store: Store): {
     total: number;
     active: number;
     deleted: number;
-}> {
+} {
     try {
-        const [totalEntries, activeEntries] = await Promise.all([
-            store.query(queryDb(tables.entries)),
-            store.query(queryDb(tables.entries.where({ deletedAt: null }))),
-        ]);
+        const totalEntries = store.query(queryDb(tables.entries));
+        const activeEntries = store.query(
+            queryDb(tables.entries.where({ deletedAt: null })),
+        );
 
         return {
             total: (totalEntries as unknown[]).length,

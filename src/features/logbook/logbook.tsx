@@ -9,8 +9,8 @@ export const Logbook = () => {
     const { store } = useStore();
     const entries = useEntries();
 
-    const handleLoadSampleData = async () => {
-        await seedOnboardingData(store);
+    const handleLoadSampleData = () => {
+        seedOnboardingData(store);
     };
 
     // Format duration from minutes to display string

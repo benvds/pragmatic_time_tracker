@@ -12,8 +12,8 @@ import { seedOnboardingData, clearAllData } from "@/features/storage";
  */
 
 interface DebugAPI {
-    load: () => Promise<void>;
-    clear: () => Promise<void>;
+    load: () => void;
+    clear: () => void;
     help: () => void;
 }
 
@@ -28,10 +28,10 @@ export function initializeDebugConsole(store: Store): void {
     }
 
     const debugAPI: DebugAPI = {
-        load: async () => {
+        load: () => {
             console.log("🔧 Loading sample data...");
             try {
-                const result = await seedOnboardingData(store);
+                const result = seedOnboardingData(store);
                 if (result.success) {
                     console.log(
                         `✅ Sample data loaded successfully! (${result.seeded} entries)`,
@@ -47,10 +47,10 @@ export function initializeDebugConsole(store: Store): void {
             }
         },
 
-        clear: async () => {
+        clear: () => {
             console.log("🔧 Clearing all data...");
             try {
-                const result = await clearAllData(store);
+                const result = clearAllData(store);
                 if (result.success) {
                     console.log(
                         `✅ All data cleared successfully! (${result.cleared || 0} entries cleared)`,

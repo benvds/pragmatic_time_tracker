@@ -9,10 +9,10 @@ import { events } from "../schema";
 export function useDeleteEntry() {
     const { store } = useStore();
 
-    return async (id: string) => {
+    return (id: string) => {
         try {
             // Commit entryDeleted event with current timestamp
-            await store.commit(
+            store.commit(
                 events.entryDeleted({
                     id,
                     deletedAt: new Date(),

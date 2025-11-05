@@ -27,8 +27,8 @@ function MyComponent() {
   // Create new entry
   const createEntry = useCreateEntry()
 
-  const handleCreate = async () => {
-    await createEntry({
+  const handleCreate = () => {
+    createEntry({
       date: new Date(),
       minutes: 60,
       description: 'Development work'
@@ -102,12 +102,12 @@ const entries = useEntries();
 
 #### `useCreateEntry()`
 
-Returns async function to create new time entry.
+Returns function to create new time entry.
 
 ```typescript
 const createEntry = useCreateEntry();
 
-await createEntry({
+createEntry({
     date: new Date(),
     minutes: 120,
     description: "Feature development",
@@ -116,12 +116,12 @@ await createEntry({
 
 #### `useUpdateEntry()`
 
-Returns async function to update existing entry (partial updates supported).
+Returns function to update existing entry (partial updates supported).
 
 ```typescript
 const updateEntry = useUpdateEntry();
 
-await updateEntry("entry-id", {
+updateEntry("entry-id", {
     minutes: 150,
     description: "Updated description",
 });
@@ -129,12 +129,12 @@ await updateEntry("entry-id", {
 
 #### `useDeleteEntry()`
 
-Returns async function to soft delete entry (sets deletedAt timestamp).
+Returns function to soft delete entry (sets deletedAt timestamp).
 
 ```typescript
 const deleteEntry = useDeleteEntry();
 
-await deleteEntry("entry-id");
+deleteEntry("entry-id");
 ```
 
 ### Utilities
@@ -183,16 +183,16 @@ import {
 } from "@/features/storage";
 
 // Seed development data (skips if data exists)
-await seedDevelopmentData(store);
+seedDevelopmentData(store);
 
 // Seed test data (clears existing first)
-await seedTestData(store);
+seedTestData(store);
 
 // Seed onboarding data for new users
-await seedOnboardingData(store);
+seedOnboardingData(store);
 
 // Clear all data
-await clearAllData(store);
+clearAllData(store);
 ```
 
 ## Data Model
@@ -262,7 +262,7 @@ pnpm test:e2e tests/e2e/performance.spec.ts
 const createEntry = useCreateEntry();
 
 try {
-    await createEntry({ date: new Date(), minutes: 60, description: "Work" });
+    createEntry({ date: new Date(), minutes: 60, description: "Work" });
 } catch (error) {
     if (error.name === "QuotaExceededError") {
         // Show user-friendly message about clearing old data

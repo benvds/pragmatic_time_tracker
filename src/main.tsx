@@ -26,6 +26,7 @@ createRoot(document.getElementById("root") as HTMLElement).render(
             adapter={adapter}
             schema={schema}
             batchUpdates={unstable_batchedUpdates}
+            renderLoading={() => <div>Loading...</div>}
         >
             <App />
         </LiveStoreProvider>

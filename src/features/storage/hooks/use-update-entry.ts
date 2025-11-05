@@ -9,7 +9,7 @@ import { events } from "../schema";
 export function useUpdateEntry() {
     const { store } = useStore();
 
-    return async (
+    return (
         id: string,
         updates: {
             date?: Date;
@@ -19,7 +19,7 @@ export function useUpdateEntry() {
     ) => {
         try {
             // Commit entryUpdated event with partial updates
-            await store.commit(
+            store.commit(
                 events.entryUpdated({
                     id,
                     ...updates,

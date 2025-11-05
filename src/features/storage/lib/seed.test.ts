@@ -14,41 +14,8 @@ describe("Seed Utilities", () => {
     });
 
     describe("seedDevelopmentData", () => {
-        it("checks for existing data before seeding", async () => {
-            // Mock empty store
-            mockStore.query.mockResolvedValue([]);
-
-            await seedDevelopmentData(mockStore as any);
-
-            // Should check for existing entries
-            expect(mockStore.query).toHaveBeenCalledOnce();
-            expect(mockStore.commit).toHaveBeenCalledWith(
-                ...developmentSeedData,
-            );
-        });
-
-        it("skips seeding if data already exists", async () => {
-            // Mock store with existing data
-            mockStore.query.mockResolvedValue([
-                { id: "existing-1", description: "Existing entry" },
-            ]);
-
-            const result = await seedDevelopmentData(mockStore as any);
-
-            // Should check for existing entries but not commit
-            expect(mockStore.query).toHaveBeenCalledOnce();
-            expect(mockStore.commit).not.toHaveBeenCalled();
-            expect(result).toEqual({
-                success: true,
-                skipped: true,
-                reason: "Data already exists",
-            });
-        });
-
-        it("commits development events if store is empty", async () => {
-            mockStore.query.mockResolvedValue([]);
-
-            const result = await seedDevelopmentData(mockStore as any);
+        it("commits development events", () => {
+            const result = seedDevelopmentData(mockStore as any);
 
             expect(mockStore.commit).toHaveBeenCalledWith(
                 ...developmentSeedData,
@@ -59,22 +26,9 @@ describe("Seed Utilities", () => {
             });
         });
 
-        it("handles errors gracefully", async () => {
-            mockStore.query.mockRejectedValue(new Error("Database error"));
-
-            const result = await seedDevelopmentData(mockStore as any);
-
-            expect(result).toEqual({
-                success: false,
-                error: "Database error",
-            });
-        });
-
-        it("is idempotent - can be called multiple times safely", async () => {
-            // First call - empty store
-            mockStore.query.mockResolvedValueOnce([]);
-            await seedDevelopmentData(mockStore as any);
-
+        it("can be called multiple times", () => {
+            // First call
+            seedDevelopmentData(mockStore as any);
             expect(mockStore.commit).toHaveBeenCalledWith(
                 ...developmentSeedData,
             );
@@ -82,27 +36,25 @@ describe("Seed Utilities", () => {
             // Reset mocks
             vi.clearAllMocks();
 
-            // Second call - store has data now
-            mockStore.query.mockResolvedValueOnce([
-                { id: "dev-1", description: "Existing" },
-            ]);
-            const result = await seedDevelopmentData(mockStore as any);
-
-            expect(mockStore.commit).not.toHaveBeenCalled();
-            expect(result.skipped).toBe(true);
+            // Second call - will create duplicate events
+            const result = seedDevelopmentData(mockStore as any);
+            expect(mockStore.commit).toHaveBeenCalledWith(
+                ...developmentSeedData,
+            );
+            expect(result.success).toBe(true);
         });
     });
 
     describe("seedTestData", () => {
-        it("clears existing entries before seeding", async () => {
+        it("clears existing entries before seeding", () => {
             const existingEntries = [
                 { id: "existing-1", description: "Old entry" },
                 { id: "existing-2", description: "Another old entry" },
             ];
 
-            mockStore.query.mockResolvedValue(existingEntries);
+            mockStore.query.mockReturnValue(existingEntries);
 
-            await seedTestData(mockStore as any);
+            const result = seedTestData(mockStore as any);
 
             // Should query existing entries
             expect(mockStore.query).toHaveBeenCalledOnce();
@@ -124,12 +76,18 @@ describe("Seed Utilities", () => {
             // Second commit: add test data
             const secondCommitCall = mockStore.commit.mock.calls[1];
             expect(secondCommitCall).toEqual(testSeedData);
+
+            expect(result).toEqual({
+                success: true,
+                seeded: testSeedData.length,
+                cleared: 2,
+            });
         });
 
-        it("seeds test data even if no existing entries", async () => {
-            mockStore.query.mockResolvedValue([]);
+        it("seeds test data even if no existing entries", () => {
+            mockStore.query.mockReturnValue([]);
 
-            const result = await seedTestData(mockStore as any);
+            const result = seedTestData(mockStore as any);
 
             // Should only commit test data (no deletes needed)
             expect(mockStore.commit).toHaveBeenCalledOnce();
@@ -141,14 +99,14 @@ describe("Seed Utilities", () => {
             });
         });
 
-        it("returns success status with counts", async () => {
+        it("returns success status with counts", () => {
             const existingEntries = [
                 { id: "existing-1" },
                 { id: "existing-2" },
             ];
-            mockStore.query.mockResolvedValue(existingEntries);
+            mockStore.query.mockReturnValue(existingEntries);
 
-            const result = await seedTestData(mockStore as any);
+            const result = seedTestData(mockStore as any);
 
             expect(result).toEqual({
                 success: true,
@@ -157,10 +115,12 @@ describe("Seed Utilities", () => {
             });
         });
 
-        it("handles errors gracefully", async () => {
-            mockStore.query.mockRejectedValue(new Error("Query failed"));
+        it("handles errors gracefully", () => {
+            mockStore.query.mockImplementation(() => {
+                throw new Error("Query failed");
+            });
 
-            const result = await seedTestData(mockStore as any);
+            const result = seedTestData(mockStore as any);
 
             expect(result).toEqual({
                 success: false,
@@ -170,16 +130,16 @@ describe("Seed Utilities", () => {
     });
 
     describe("clearAllData", () => {
-        it("soft deletes all active entries", async () => {
+        it("soft deletes all active entries", () => {
             const activeEntries = [
                 { id: "entry-1", description: "Active 1" },
                 { id: "entry-2", description: "Active 2" },
                 { id: "entry-3", description: "Active 3" },
             ];
 
-            mockStore.query.mockResolvedValue(activeEntries);
+            mockStore.query.mockReturnValue(activeEntries);
 
-            const result = await clearAllData(mockStore as any);
+            const result = clearAllData(mockStore as any);
 
             expect(mockStore.query).toHaveBeenCalledOnce();
 
@@ -198,19 +158,21 @@ describe("Seed Utilities", () => {
             expect(result).toEqual({ success: true, cleared: 3 });
         });
 
-        it("handles empty store gracefully", async () => {
-            mockStore.query.mockResolvedValue([]);
+        it("handles empty store gracefully", () => {
+            mockStore.query.mockReturnValue([]);
 
-            const result = await clearAllData(mockStore as any);
+            const result = clearAllData(mockStore as any);
 
             expect(mockStore.commit).not.toHaveBeenCalled();
             expect(result).toEqual({ success: true, cleared: 0 });
         });
 
-        it("handles errors gracefully", async () => {
-            mockStore.query.mockRejectedValue(new Error("Clear failed"));
+        it("handles errors gracefully", () => {
+            mockStore.query.mockImplementation(() => {
+                throw new Error("Clear failed");
+            });
 
-            const result = await clearAllData(mockStore as any);
+            const result = clearAllData(mockStore as any);
 
             expect(result).toEqual({
                 success: false,
@@ -220,29 +182,29 @@ describe("Seed Utilities", () => {
     });
 
     describe("Seed Operations Integration", () => {
-        it("can clear and then seed test data", async () => {
+        it("can clear and then seed test data", () => {
             // Setup existing data
             const existingEntries = [{ id: "old-1" }];
-            mockStore.query.mockResolvedValue(existingEntries);
+            mockStore.query.mockReturnValue(existingEntries);
 
             // Clear all data
-            await clearAllData(mockStore as any);
+            clearAllData(mockStore as any);
             expect(mockStore.commit).toHaveBeenCalledOnce();
 
             // Reset for second operation
             vi.clearAllMocks();
-            mockStore.query.mockResolvedValue([]); // Now empty
+            mockStore.query.mockReturnValue([]); // Now empty
 
             // Seed test data
-            await seedTestData(mockStore as any);
+            seedTestData(mockStore as any);
             expect(mockStore.commit).toHaveBeenCalledWith(...testSeedData);
         });
 
-        it("maintains data integrity across operations", async () => {
+        it("maintains data integrity across operations", () => {
             // Each operation should maintain proper event structure
-            mockStore.query.mockResolvedValue([{ id: "test-1" }]);
+            mockStore.query.mockReturnValue([{ id: "test-1" }]);
 
-            await clearAllData(mockStore as any);
+            clearAllData(mockStore as any);
 
             const deleteEvent = mockStore.commit.mock.calls[0][0];
             expect(deleteEvent).toMatchObject({

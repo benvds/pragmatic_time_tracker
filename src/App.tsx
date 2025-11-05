@@ -23,7 +23,7 @@ export const App = () => {
 
                 // Only seed in development mode
                 if (import.meta.env.DEV) {
-                    const result = await seedDevelopmentData(store);
+                    const result = seedDevelopmentData(store);
 
                     if (result.success) {
                         if (result.seeded) {

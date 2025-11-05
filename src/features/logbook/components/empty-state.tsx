@@ -4,19 +4,19 @@ import { IconDatabase, IconAlertCircle } from "@tabler/icons-react";
 import styles from "./empty-state.module.css";
 
 interface EmptyStateProps {
-    onLoadSampleData: () => Promise<void>;
+    onLoadSampleData: () => void;
 }
 
 export function EmptyState({ onLoadSampleData }: EmptyStateProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleLoadSampleData = async () => {
+    const handleLoadSampleData = () => {
         setIsLoading(true);
         setError(null);
 
         try {
-            await onLoadSampleData();
+            onLoadSampleData();
         } catch (err) {
             setError(
                 err instanceof Error

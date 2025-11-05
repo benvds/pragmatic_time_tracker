@@ -1,8 +1,9 @@
 /// <reference types="vite/client" />
 /// <reference types="vitest/config" />
+import { spawn } from "node:child_process";
 
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, type PluginOption } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { livestoreDevtoolsPlugin } from "@livestore/devtools-vite";
 
@@ -21,15 +22,45 @@ const wasmPlugin = () => {
     };
 };
 
+const _wranglerDevPlugin = (): PluginOption => {
+    return {
+        name: "wrangler-dev",
+        configureServer: async (server) => {
+            const wrangler = spawn(
+                "./node_modules/.bin/wrangler",
+                ["dev", "--port", "8787"],
+                {
+                    stdio: ["ignore", "inherit", "inherit"],
+                },
+            );
+
+            const shutdown = () => {
+                if (wrangler.killed === false) {
+                    wrangler.kill();
+                }
+                process.exit(0);
+            };
+
+            server.httpServer?.on("close", shutdown);
+            process.on("SIGTERM", shutdown);
+            process.on("SIGINT", shutdown);
+
+            wrangler.on("exit", (code) =>
+                console.error(`wrangler dev exited with code ${code}`),
+            );
+        },
+    };
+};
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
     plugins: [
         react(),
         tsconfigPaths(),
         wasmPlugin(),
-        livestoreDevtoolsPlugin({
-            schemaPath: "./src/features/storage/schema.ts",
-        }),
+        // livestoreDevtoolsPlugin({
+        //     schemaPath: "./src/features/storage/schema.ts",
+        // }),
         // wranglerDevPlugin(),
     ],
     define: {
