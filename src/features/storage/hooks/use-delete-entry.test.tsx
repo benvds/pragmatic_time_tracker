@@ -34,16 +34,18 @@ describe("useDeleteEntry", () => {
         expect(event.args.deletedAt).toBeInstanceOf(Date);
     });
 
-    it("should handle errors gracefully", async () => {
-        mockCommit.mockRejectedValueOnce(new Error("Storage error"));
+    it("should handle errors gracefully", () => {
+        mockCommit.mockImplementationOnce(() => {
+            throw new Error("Storage error");
+        });
 
         const { result } = renderHook(() => useDeleteEntry());
 
         // Should throw the error
-        await expect(
-            act(async () => {
-                await result.current("test-id");
-            }),
-        ).rejects.toThrow("Storage error");
+        expect(() => {
+            act(() => {
+                result.current("test-id");
+            });
+        }).toThrow("Storage error");
     });
 });
