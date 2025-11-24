@@ -1,19 +1,25 @@
 import type { Store } from "@livestore/livestore";
-import { seedOnboardingData, clearAllData } from "@/features/storage";
+import { seedOnboardingData } from "@/features/storage";
 
 /**
  * Debug console API for development
  * Available in the browser console when DEBUG mode is enabled
  *
  * Usage:
- *   __debug.load()          - Load sample data
- *   __debug.clear()         - Clear all data
- *   __debug.help()          - Show available commands
+ *   __debug.load()              - Load sample data
+ *   __debug.clear()             - Clear all data (hard reset)
+ *   __debug.downloadDb()        - Download SQLite database
+ *   __debug.downloadEventlog()  - Download eventlog database
+ *   __debug.syncStates()        - Show current sync state
+ *   __debug.help()              - Show available commands
  */
 
 interface DebugAPI {
     load: () => void;
     clear: () => void;
+    downloadDb: () => void;
+    downloadEventlog: () => void;
+    syncStates: () => void;
     help: () => void;
 }
 
@@ -50,16 +56,54 @@ export function initializeDebugConsole(store: Store): void {
         clear: () => {
             console.log("🔧 Clearing all data...");
             try {
-                const result = clearAllData(store);
-                if (result.success) {
-                    console.log(
-                        `✅ All data cleared successfully! (${result.cleared || 0} entries cleared)`,
-                    );
-                } else {
-                    console.error("❌ Failed to clear data:", result.error);
+                if (!__debugLiveStore?.default?._dev) {
+                    throw new Error("LiveStore debug helpers not available");
                 }
+                __debugLiveStore.default._dev.hardReset();
+                console.log("✅ All data cleared successfully!");
+                console.log("♻️  Reloading page to reflect cleared state...");
+                window.location.reload();
             } catch (error) {
                 console.error("❌ Error clearing data:", error);
+            }
+        },
+
+        downloadDb: () => {
+            console.log("💾 Downloading database...");
+            try {
+                if (!__debugLiveStore?.default?._dev) {
+                    throw new Error("LiveStore debug helpers not available");
+                }
+                __debugLiveStore.default._dev.downloadDb();
+                console.log("✅ Database download started");
+            } catch (error) {
+                console.error("❌ Error downloading database:", error);
+            }
+        },
+
+        downloadEventlog: () => {
+            console.log("💾 Downloading eventlog database...");
+            try {
+                if (!__debugLiveStore?.default?._dev) {
+                    throw new Error("LiveStore debug helpers not available");
+                }
+                __debugLiveStore.default._dev.downloadEventlogDb();
+                console.log("✅ Eventlog database download started");
+            } catch (error) {
+                console.error("❌ Error downloading eventlog:", error);
+            }
+        },
+
+        syncStates: () => {
+            console.log("🔄 Fetching sync states...");
+            try {
+                if (!__debugLiveStore?.default?._dev) {
+                    throw new Error("LiveStore debug helpers not available");
+                }
+                const states = __debugLiveStore.default._dev.syncStates();
+                console.log("Sync States:", states);
+            } catch (error) {
+                console.error("❌ Error fetching sync states:", error);
             }
         },
 
@@ -70,14 +114,19 @@ export function initializeDebugConsole(store: Store): void {
 
 Available commands:
 
-  __debug.load()    Load sample time tracking data
-  __debug.clear()   Clear all data from the database
-  __debug.help()    Show this help message
+  __debug.load()              Load sample time tracking data
+  __debug.clear()             Clear all data (hard reset + reload)
+  __debug.downloadDb()        Download SQLite database file
+  __debug.downloadEventlog()  Download eventlog database file
+  __debug.syncStates()        Display current sync state
+  __debug.help()              Show this help message
 
 Examples:
 
   > __debug.load()
   > __debug.clear()
+  > __debug.downloadDb()
+  > __debug.syncStates()
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             `);
@@ -96,15 +145,4 @@ Examples:
         "%cType __debug.help() for available commands",
         "color: #666; font-style: italic;",
     );
-}
-
-/**
- * Clean up debug console API
- */
-export function cleanupDebugConsole(): void {
-    if (import.meta.env.VITE_DEBUG !== "true") {
-        return;
-    }
-
-    delete (window as any).__debug;
 }

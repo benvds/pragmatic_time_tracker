@@ -10,8 +10,11 @@ interface ImportMeta {
 }
 
 interface DebugAPI {
-    load: () => Promise<void>;
-    clear: () => Promise<void>;
+    load: () => void;
+    clear: () => void;
+    downloadDb: () => void;
+    downloadEventlog: () => void;
+    syncStates: () => void;
     help: () => void;
 }
 

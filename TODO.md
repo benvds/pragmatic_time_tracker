@@ -5,5 +5,12 @@
 - [x] check basic widget library like radix or mantine
 - [x] check basic styling lib, clsx
 - [x] add playwright with user story spec
+- [ ] fix console errors
 - [ ] check playwright for component testing
 - [ ] run knip or something for dead code paths
+- [ ] cleanup ai spec files
+
+## Fix console errors
+
+- throws an insert error
+  - what happens on page load in dev mode?

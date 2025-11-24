@@ -32,11 +32,49 @@ Loads sample time tracking entries into the database. Useful for:
 __debug.clear();
 ```
 
-Clears all time entries from the database. Useful for:
+Performs a hard reset using LiveStore's `hardReset()` helper, then reloads the page. Useful for:
 
-- Resetting to a clean state
+- Resetting to a completely clean state
 - Testing empty states
-- Starting fresh
+- Starting fresh with no data or events
+
+**Note:** This uses LiveStore's built-in hard reset functionality which clears all data and the eventlog.
+
+### Download Database
+
+```javascript
+__debug.downloadDb();
+```
+
+Downloads the SQLite database file to your computer. Useful for:
+
+- Inspecting database contents
+- Debugging data issues
+- Backing up test data
+
+### Download Eventlog
+
+```javascript
+__debug.downloadEventlog();
+```
+
+Downloads the eventlog database file to your computer. Useful for:
+
+- Reviewing event history
+- Debugging event sourcing issues
+- Auditing data changes
+
+### View Sync States
+
+```javascript
+__debug.syncStates();
+```
+
+Displays the current synchronization state in the console. Useful for:
+
+- Debugging sync issues
+- Monitoring connection status
+- Checking replication state
 
 ### Get Help
 
@@ -54,10 +92,26 @@ Displays available commands and usage examples in the console.
 🔧 Loading sample data...
 ✅ Sample data loaded successfully! (18 entries)
 
-// Clear everything
+// Clear everything (hard reset)
 > __debug.clear()
 🔧 Clearing all data...
-✅ All data cleared successfully! (18 entries cleared)
+✅ All data cleared successfully!
+♻️  Reloading page to reflect cleared state...
+
+// Download database
+> __debug.downloadDb()
+💾 Downloading database...
+✅ Database download started
+
+// Download eventlog
+> __debug.downloadEventlog()
+💾 Downloading eventlog database...
+✅ Eventlog database download started
+
+// Check sync state
+> __debug.syncStates()
+🔄 Fetching sync states...
+Sync States: { ... }
 
 // Show help
 > __debug.help()
@@ -72,8 +126,11 @@ The `__debug` object is fully typed in TypeScript:
 
 ```typescript
 interface DebugAPI {
-    load: () => Promise<void>;
+    load: () => void;
     clear: () => Promise<void>;
+    downloadDb: () => Promise<void>;
+    downloadEventlog: () => Promise<void>;
+    syncStates: () => void;
     help: () => void;
 }
 

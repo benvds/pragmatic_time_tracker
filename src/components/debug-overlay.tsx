@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import {
     Button,
     Stack,
@@ -14,11 +14,15 @@ import {
     IconTrash,
     IconAlertCircle,
     IconX,
+    IconDownload,
+    IconRefresh,
 } from "@tabler/icons-react";
 import { useStore } from "@livestore/react";
 import { seedOnboardingData } from "@/features/storage";
+import { initializeDebugConsole } from "@/lib/debug-console";
 import styles from "./debug-overlay.module.css";
 
+const debugEnabled = import.meta.env.VITE_DEBUG !== "true";
 /**
  * Debug overlay menu that appears when DEBUG environment variable is true
  * Provides utilities for testing and development
@@ -32,8 +36,14 @@ export function DebugOverlay() {
         text: string;
     } | null>(null);
 
+    useEffect(() => {
+        if (debugEnabled) {
+            initializeDebugConsole(store);
+        }
+    }, [store]);
+
     // Don't render if not in debug mode
-    if (import.meta.env.VITE_DEBUG !== "true") {
+    if (debugEnabled) {
         return null;
     }
 
@@ -73,14 +83,79 @@ export function DebugOverlay() {
                 type: "success",
                 text: "All data cleared successfully",
             });
+            // Reload page to reflect cleared state
+            window.location.reload();
         } catch (err) {
             setMessage({
                 type: "error",
                 text:
                     err instanceof Error ? err.message : "Failed to clear data",
             });
-        } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleDownloadDb = () => {
+        try {
+            if (!__debugLiveStore?.default?._dev) {
+                throw new Error("LiveStore debug helpers not available");
+            }
+            __debugLiveStore.default._dev.downloadDb();
+            setMessage({
+                type: "success",
+                text: "Database download started",
+            });
+        } catch (err) {
+            setMessage({
+                type: "error",
+                text:
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to download database",
+            });
+        }
+    };
+
+    const handleDownloadEventlog = () => {
+        try {
+            if (!__debugLiveStore?.default?._dev) {
+                throw new Error("LiveStore debug helpers not available");
+            }
+            __debugLiveStore.default._dev.downloadEventlogDb();
+            setMessage({
+                type: "success",
+                text: "Eventlog download started",
+            });
+        } catch (err) {
+            setMessage({
+                type: "error",
+                text:
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to download eventlog",
+            });
+        }
+    };
+
+    const handleSyncStates = () => {
+        try {
+            if (!__debugLiveStore?.default?._dev) {
+                throw new Error("LiveStore debug helpers not available");
+            }
+            const states = __debugLiveStore.default._dev.syncStates();
+            console.log("Sync States:", states);
+            setMessage({
+                type: "success",
+                text: "Sync states logged to console",
+            });
+        } catch (err) {
+            setMessage({
+                type: "error",
+                text:
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to get sync states",
+            });
         }
     };
 
@@ -146,6 +221,39 @@ export function DebugOverlay() {
                                 fullWidth
                             >
                                 Clear All Data
+                            </Button>
+
+                            <Button
+                                size="xs"
+                                variant="light"
+                                leftSection={<IconDownload size={16} />}
+                                onClick={handleDownloadDb}
+                                disabled={isLoading}
+                                fullWidth
+                            >
+                                Download Database
+                            </Button>
+
+                            <Button
+                                size="xs"
+                                variant="light"
+                                leftSection={<IconDownload size={16} />}
+                                onClick={handleDownloadEventlog}
+                                disabled={isLoading}
+                                fullWidth
+                            >
+                                Download Eventlog
+                            </Button>
+
+                            <Button
+                                size="xs"
+                                variant="light"
+                                leftSection={<IconRefresh size={16} />}
+                                onClick={handleSyncStates}
+                                disabled={isLoading}
+                                fullWidth
+                            >
+                                View Sync States
                             </Button>
                         </Stack>
 
