@@ -20,6 +20,8 @@ const adapter = makePersistedAdapter({
     sharedWorker: LiveStoreSharedWorker,
 });
 
+console.info("👋 Welcome to Pragmatic Time Tracker!");
+
 createRoot(document.getElementById("root") as HTMLElement).render(
     <StrictMode>
         <LiveStoreProvider
