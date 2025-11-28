@@ -1,6 +1,9 @@
+packages:
+    - "."
+
 onlyBuiltDependencies:
-  - '@parcel/watcher'
-  - esbuild
-  - msgpackr-extract
-  - sharp
-  - workerd
+    - "@parcel/watcher"
+    - esbuild
+    - msgpackr-extract
+    - sharp
+    - workerd
